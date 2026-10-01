@@ -25,8 +25,10 @@
 # Returns:
 # - Coordinates (x, y, z) of the beamforming maximum (estimated source position)
 #
-# Note: The coordinate system is flipped in x and y to match the specific mirroring
-# configuration of the microphone geometry used (UMA-16 mirrored).
+# Evaluation frame: return (-x_raw, +y_raw, +z_raw), where raw coordinates are in
+# Acoular's packaged UMA-16 mirrored geometry/grid frame. The 2D variants return
+# x and y with z supplied by the caller. This x-only mirror matches the active
+# evaluation/model path; it does not define the camera image-overlay frame.
 # -----------------------------------------------------------------------------------------------------------
 
 
@@ -148,7 +150,7 @@ def single_source_cleansc(signal_path, c, frequency, block_size=1024):
     y_coord = -1.5 + iy * 0.1
     z_coord = 1 + iz * 0.1
         
-    return -x_coord, -y_coord, z_coord
+    return -x_coord, y_coord, z_coord
 
 def single_source_cleansc_2D(signal_path, c, frequency, z, block_size=1024): 
     """
