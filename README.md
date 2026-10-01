@@ -4,7 +4,7 @@
 
 **Microphone-array measurements into sound-source maps.**
 
-The application combines Acoular beamforming with a Bokeh dashboard and optional Flask camera overlay. Signal processing, geometry, configuration, and model interfaces remain intact.
+The application combines Acoular beamforming with a Bokeh dashboard and optional Flask camera overlay. Offline evaluation kernels use a shared x-mirrored coordinate frame, separate from the camera overlay frame.
 
 ## Set up
 
@@ -27,6 +27,6 @@ This remains a research/test application with the original implementation's limi
 
 ## Verification
 
-See [the verification record](docs/VERIFICATION.md) for executed checks and unavailable hardware/model checks. Successful computational behavior is preserved; renamed commands add a presentation layer.
+See [the verification record](docs/VERIFICATION.md) for dated checks and unavailable hardware/model checks. It distinguishes the original packaging parity check from the later synthetic evaluation-coordinate acceptance check.
 
 Maintained by [nazeeh111](https://github.com/nazeeh111).

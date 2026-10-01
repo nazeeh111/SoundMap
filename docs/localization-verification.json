@@ -1,0 +1,434 @@
+{
+  "executed_utc": "2026-10-01T01:45:47.952701+00:00",
+  "source_base_commit": "44e83fb3f3464b984475885ced86468af803859d",
+  "baseline_module_sha256": "1f8e2966ebb3945a7087ce50709528aba714e084a3beeeb84c53fe75fc8aed79",
+  "corrected_module_sha256": "46e5e6609628f60725fe5861d5b07606ef90c07ac1fdcf4589f7201d6b9e173b",
+  "verifier_sha256": "8db502278575243eb58c72123d17cb2362b646b477909a4117a1c9fc3f11eac6",
+  "environment": {
+    "python": "3.12.13 (main, Jun  2 2026, 22:42:28) [Clang 22.1.3 ]",
+    "packages": {
+      "acoular": "25.3",
+      "numpy": "1.26.4",
+      "scipy": "1.14.0",
+      "h5py": "3.11.0",
+      "traits": "6.4.3",
+      "tables": "3.11.1"
+    }
+  },
+  "geometry": {
+    "name": "minidsp_uma-16_mirrored.xml",
+    "sha256": "97a2d43c8b04560ec73cc6ecf4d6e7a99c85869092612ef4825b1bc87dc850e1",
+    "microphone_positions_m": [
+      [
+        -0.021,
+        -0.063,
+        -0.021,
+        -0.063,
+        -0.021,
+        -0.063,
+        -0.021,
+        -0.063,
+        0.063,
+        0.021,
+        0.063,
+        0.021,
+        0.063,
+        0.021,
+        0.063,
+        0.021
+      ],
+      [
+        -0.063,
+        -0.063,
+        -0.021,
+        -0.021,
+        0.021,
+        0.021,
+        0.063,
+        0.063,
+        0.063,
+        0.063,
+        0.021,
+        0.021,
+        -0.021,
+        -0.021,
+        -0.063,
+        -0.063
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ]
+  },
+  "signal_model": {
+    "equation": "p_m(t)=0.01 sin(2*pi*f*(t-||r_m-s||/c))/||r_m-s||",
+    "frequency_hz": 4096.0,
+    "sample_rate_hz": 16384.0,
+    "samples": 8192,
+    "speed_of_sound_m_s": 343.0,
+    "fft_block_size": 256,
+    "independent_numpy_generator": true
+  },
+  "expected_frame": "(-XML x, +XML y, +XML z) for evaluation kernels; 2D returns x,y with known z input.",
+  "tolerance": "One grid interval per axis: 0.05 m Base, 0.1 m CLEAN; declared before execution.",
+  "fixtures": [
+    {
+      "case": "center",
+      "file_sha256": "92fd10da23f0041405b29bb3cc70a81fae29617b0c112abeb53c218e49af99f3",
+      "time_data_sha256": "fa4bb9e3481746f693d4d2e6db70d2bd2ddce6bfb95d9f1fc03cdae4dc03b018",
+      "physical_xml_frame_m": [
+        0.0,
+        0.0,
+        1.5
+      ]
+    },
+    {
+      "case": "positive-x-positive-y",
+      "file_sha256": "1447f6a310eca99d6288a27fc14497d83d41f999e736d9de7c581ab09299c1b6",
+      "time_data_sha256": "348870be7fe1fb06a025c5241a0fc0f9f011b3164e0f766f2cd0ac3b37f72f33",
+      "physical_xml_frame_m": [
+        0.5,
+        0.3,
+        1.5
+      ]
+    },
+    {
+      "case": "negative-x-positive-y",
+      "file_sha256": "83923f1fa6c90a035ecbc500b559f006940807db7aa5d1440c9ffe75f0ddbf6d",
+      "time_data_sha256": "b7e9b742cee54a5c98c0949c6d102a315e54d6d4a7669eec4d07d3ba8afb298f",
+      "physical_xml_frame_m": [
+        -0.4,
+        0.6,
+        1.8
+      ]
+    },
+    {
+      "case": "positive-x-negative-y",
+      "file_sha256": "ce16abb24070387a5f4f1200bb67cc49d2f66f434fee28e5e77c3db593a5fc4d",
+      "time_data_sha256": "4059c16b3678a3bdf0abf489bc43485169ec244cec5307e859dc4f8c72ff4601",
+      "physical_xml_frame_m": [
+        0.7,
+        -0.5,
+        2.0
+      ]
+    }
+  ],
+  "baseline": {
+    "process_exit_code": 1,
+    "passed": 10,
+    "failed": 2,
+    "failed_observations": [
+      {
+        "kernel": "single_source_cleansc",
+        "case": "positive-x-positive-y",
+        "dimensions": 3,
+        "expected_evaluation_frame_m": [
+          -0.5,
+          0.3,
+          1.5
+        ],
+        "returned_coordinates_m": [
+          -0.5,
+          -0.30000000000000004,
+          1.5
+        ],
+        "residual_m": [
+          0.0,
+          -0.6000000000000001,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.1,
+        "passed": false
+      },
+      {
+        "kernel": "single_source_cleansc",
+        "case": "negative-x-positive-y",
+        "dimensions": 3,
+        "expected_evaluation_frame_m": [
+          0.4,
+          0.6,
+          1.8
+        ],
+        "returned_coordinates_m": [
+          0.3999999999999999,
+          -0.6000000000000001,
+          1.8
+        ],
+        "residual_m": [
+          -1.1102230246251565e-16,
+          -1.2000000000000002,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.1,
+        "passed": false
+      }
+    ]
+  },
+  "corrected": {
+    "process_exit_code": 0,
+    "passed": 12,
+    "failed": 0,
+    "observations": [
+      {
+        "kernel": "single_source_beamforming_2D",
+        "case": "center",
+        "dimensions": 2,
+        "expected_evaluation_frame_m": [
+          -0.0,
+          0.0
+        ],
+        "returned_coordinates_m": [
+          0.0,
+          0.0
+        ],
+        "residual_m": [
+          0.0,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.05,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_beamforming_2D",
+        "case": "positive-x-positive-y",
+        "dimensions": 2,
+        "expected_evaluation_frame_m": [
+          -0.5,
+          0.3
+        ],
+        "returned_coordinates_m": [
+          -0.5,
+          0.30000000000000004
+        ],
+        "residual_m": [
+          0.0,
+          5.551115123125783e-17
+        ],
+        "declared_tolerance_per_axis_m": 0.05,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_beamforming_2D",
+        "case": "negative-x-positive-y",
+        "dimensions": 2,
+        "expected_evaluation_frame_m": [
+          0.4,
+          0.6
+        ],
+        "returned_coordinates_m": [
+          0.40000000000000013,
+          0.6000000000000001
+        ],
+        "residual_m": [
+          1.1102230246251565e-16,
+          1.1102230246251565e-16
+        ],
+        "declared_tolerance_per_axis_m": 0.05,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_beamforming_2D",
+        "case": "positive-x-negative-y",
+        "dimensions": 2,
+        "expected_evaluation_frame_m": [
+          -0.7,
+          -0.5
+        ],
+        "returned_coordinates_m": [
+          -0.7,
+          -0.5
+        ],
+        "residual_m": [
+          0.0,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.05,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_cleansc_2D",
+        "case": "center",
+        "dimensions": 2,
+        "expected_evaluation_frame_m": [
+          -0.0,
+          0.0
+        ],
+        "returned_coordinates_m": [
+          0.0,
+          0.0
+        ],
+        "residual_m": [
+          0.0,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.1,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_cleansc_2D",
+        "case": "positive-x-positive-y",
+        "dimensions": 2,
+        "expected_evaluation_frame_m": [
+          -0.5,
+          0.3
+        ],
+        "returned_coordinates_m": [
+          -0.5,
+          0.30000000000000004
+        ],
+        "residual_m": [
+          0.0,
+          5.551115123125783e-17
+        ],
+        "declared_tolerance_per_axis_m": 0.1,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_cleansc_2D",
+        "case": "negative-x-positive-y",
+        "dimensions": 2,
+        "expected_evaluation_frame_m": [
+          0.4,
+          0.6
+        ],
+        "returned_coordinates_m": [
+          0.40000000000000013,
+          0.6000000000000001
+        ],
+        "residual_m": [
+          1.1102230246251565e-16,
+          1.1102230246251565e-16
+        ],
+        "declared_tolerance_per_axis_m": 0.1,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_cleansc_2D",
+        "case": "positive-x-negative-y",
+        "dimensions": 2,
+        "expected_evaluation_frame_m": [
+          -0.7,
+          -0.5
+        ],
+        "returned_coordinates_m": [
+          -0.7,
+          -0.5
+        ],
+        "residual_m": [
+          0.0,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.1,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_beamforming",
+        "case": "positive-x-positive-y",
+        "dimensions": 3,
+        "expected_evaluation_frame_m": [
+          -0.5,
+          0.3,
+          1.5
+        ],
+        "returned_coordinates_m": [
+          -0.5,
+          0.30000000000000004,
+          1.5
+        ],
+        "residual_m": [
+          0.0,
+          5.551115123125783e-17,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.05,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_beamforming",
+        "case": "negative-x-positive-y",
+        "dimensions": 3,
+        "expected_evaluation_frame_m": [
+          0.4,
+          0.6,
+          1.8
+        ],
+        "returned_coordinates_m": [
+          0.3999999999999999,
+          0.6000000000000001,
+          1.8
+        ],
+        "residual_m": [
+          -1.1102230246251565e-16,
+          1.1102230246251565e-16,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.05,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_cleansc",
+        "case": "positive-x-positive-y",
+        "dimensions": 3,
+        "expected_evaluation_frame_m": [
+          -0.5,
+          0.3,
+          1.5
+        ],
+        "returned_coordinates_m": [
+          -0.5,
+          0.30000000000000004,
+          1.5
+        ],
+        "residual_m": [
+          0.0,
+          5.551115123125783e-17,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.1,
+        "passed": true
+      },
+      {
+        "kernel": "single_source_cleansc",
+        "case": "negative-x-positive-y",
+        "dimensions": 3,
+        "expected_evaluation_frame_m": [
+          0.4,
+          0.6,
+          1.8
+        ],
+        "returned_coordinates_m": [
+          0.3999999999999999,
+          0.6000000000000001,
+          1.8
+        ],
+        "residual_m": [
+          -1.1102230246251565e-16,
+          1.1102230246251565e-16,
+          0.0
+        ],
+        "declared_tolerance_per_axis_m": 0.1,
+        "passed": true
+      }
+    ]
+  },
+  "limits": [
+    "Single ideal coherent tone, one source, grid-aligned points, no noise/reverberation/calibration errors.",
+    "No external measurement frame, hardware, camera overlay, trained model or full application validation.",
+    "Floating-point residuals do not establish sub-grid or general localization accuracy."
+  ]
+}
