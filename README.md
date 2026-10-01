@@ -1,6 +1,6 @@
 # SoundMap
 
-**Development history:** Developed locally using Git before publication. These projects were published to GitHub together, so similar upload dates do not indicate when development began.
+Packages the application from [rabeaifeanyi/acoustic-camera](https://github.com/rabeaifeanyi/acoustic-camera/tree/876dedd0a637ad95d6036c2009b354188241ae7e). SoundMap adds command dispatch, verification documentation and a correction to the offline evaluation coordinate frame. Acoular-derived portions retain their separate BSD-3-Clause notices.
 
 **Microphone-array measurements into sound-source maps.**
 
@@ -28,5 +28,9 @@ This remains a research/test application with the original implementation's limi
 ## Verification
 
 See [the verification record](docs/VERIFICATION.md) for dated checks and unavailable hardware/model checks. It distinguishes the original packaging parity check from the later synthetic evaluation-coordinate acceptance check.
+
+## Source and license scope
+
+[Source and notices](THIRD_PARTY_NOTICES.md) identifies the original application and Acoular-derived file. [LICENSE](LICENSE) covers new and authorized contributions; it does not establish a grant for the remaining inherited application. The pinned original application has no project license file or README grant, and separate redistribution permission has not been verified.
 
 Maintained by [nazeeh111](https://github.com/nazeeh111).
