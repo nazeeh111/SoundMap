@@ -1,5 +1,7 @@
 # Acoustic Camera
 
+Retained setup guide from [rabeaifeanyi/acoustic-camera, commit 876dedd0a637ad95d6036c2009b354188241ae7e](https://github.com/rabeaifeanyi/acoustic-camera/tree/876dedd0a637ad95d6036c2009b354188241ae7e). [Source and license scope](../THIRD_PARTY_NOTICES.md) distinguishes the original application from SoundMap's additions.
+
 **Note:** This Bachelor project is an unmaintained test implementation. For a great Python-based acoustic camera, please use **[Spectacoular](https://github.com/acoular/spectacoular)** instead, which is developed by the makers of Acoular.
 
 This project aims to create an acoustic camera that can visualize sound sources in a room.
