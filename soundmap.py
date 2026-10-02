@@ -1,6 +1,7 @@
 """SoundMap: Microphone-array measurements into sound-source maps."""
 import argparse
 from pathlib import Path
+import signal
 import subprocess
 import sys
 
@@ -14,9 +15,46 @@ def main(argv=None):
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parent
     script = root / COMMANDS[args.command]
-    # The existing entry point expects its documented working directory.
     cwd = script.parent if args.command == "run" else root
-    return subprocess.call([sys.executable, str(script), *args.arguments], cwd=cwd)
+    child = None
+    stopping_signal = None
+    previous_handlers = {}
+    cleaned = True
+
+    def forward_signal(signum, frame):
+        nonlocal stopping_signal
+        stopping_signal = signum
+        if child is not None:
+            try:
+                child.send_signal(signum)
+            except ProcessLookupError:
+                pass
+
+    try:
+        for signum in (signal.SIGINT, signal.SIGTERM):
+            previous_handlers[signum] = signal.signal(signum, forward_signal)
+        child = subprocess.Popen([sys.executable, str(script), *args.arguments], cwd=cwd)
+        if stopping_signal is not None:
+            child.send_signal(stopping_signal)
+        status = child.wait()
+    finally:
+        if child is not None and child.poll() is None:
+            try:
+                child.terminate()
+                try:
+                    child.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    child.kill()
+                    child.wait(timeout=5)
+            except (OSError, subprocess.TimeoutExpired) as error:
+                print(f"Could not reap launcher: {type(error).__name__}", file=sys.stderr)
+                cleaned = False
+        for signum, handler in previous_handlers.items():
+            signal.signal(signum, handler)
+    if stopping_signal is not None:
+        return 128 + stopping_signal
+    status = status if status >= 0 else 128 - status
+    return 1 if not cleaned and status == 0 else status
 
 
 if __name__ == "__main__":
