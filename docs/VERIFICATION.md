@@ -1,5 +1,15 @@
 # Verification
 
+## Launcher process checks
+
+The public command now observes Bokeh and Flask termination, preserves nonzero child status and cleans up its owned children. Previously, Bokeh-only failure became exit 0, the combined route ignored child exits, and unread Flask output pipes could block the child. Both modes now own their Bokeh process. Shutdown requests reach the application launcher through the public dispatcher; SIGINT produces exit 130 and SIGTERM produces exit 143. A child terminated by a signal uses the same `128 + signal` convention.
+
+Sixteen process cases exercise the real public dispatcher and application launcher with controlled executable children. They cover early and later failures, orderly exit, simultaneous zero/nonzero exits, both model argument variants, arguments containing spaces, working directories, output exceeding pipe capacity, forwarded signals and a stubborn child that requires kill followed by reaping. Every process case asserts that no controlled child remains alive. Browser opening is checked with a substituted function; a failed startup must not call it. The existing mocked dispatch test also checks restoration of signal handlers.
+
+The first two Bokeh-only failure cases reproduce child exit 7 becoming public exit 0. Four further cases reproduce hangs in the combined and signal-shutdown paths before supervision. All 17 command tests pass after the correction.
+
+Optional imports, server executables and browser opening are substituted to avoid devices, browsers and servers. These checks establish launcher-process behavior, not Bokeh/Flask application behavior, TensorFlow models, microphone acquisition, camera integration or the full Python 3.11 stack. Process survival after the startup delays is not HTTP readiness. The numerical processing, calibration, data and model implementations are unchanged.
+
 ## Evaluation coordinates, 2026-10-01 UTC
 
 Python 3.12.13, Acoular 25.3, NumPy 1.26.4, SciPy 1.14.0, h5py 3.11.0 and Traits 6.4.3 on macOS ARM64. This checks the offline evaluation kernels, not the full application's stated Python 3.11 environment.

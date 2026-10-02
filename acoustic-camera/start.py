@@ -13,111 +13,113 @@ config = ConfigManager(CONFIG_PATH)
 
 flask_process = None
 bokeh_process = None
+received_signal = None
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str, help="Path to an explicit checkpoint (.keras)")
 parser.add_argument("--no-flask", action="store_true", help="Start only the Bokeh app without Flask")
-
 args, unknown = parser.parse_known_args()
 
 
 def start_flask():
-    """
-    Starts the Flask server as a sub-process.
-    """
     global flask_process
-    flask_process = subprocess.Popen([sys.executable, "scripts/flask_app.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print("Flask server started at http://127.0.0.1:5000.")
+    # Inherit output: unread PIPEs can block a child before it can exit.
+    flask_process = subprocess.Popen([sys.executable, "scripts/flask_app.py"])
+    print("Flask process started at http://127.0.0.1:5000.")
 
 
 def start_bokeh():
-    """
-    Starts the Bokeh app as a sub-process.
-    """
     global bokeh_process
-    
+    command = [sys.executable, "-m", "bokeh", "serve"]
+    if not args.no_flask:
+        command.append("--allow-websocket-origin=127.0.0.1:5000")
+    command.append("scripts/bokeh_app.py")
     if args.model:
-        bokeh_process = subprocess.Popen(
-            [sys.executable, "-m", "bokeh", "serve", "--allow-websocket-origin=127.0.0.1:5000", "scripts/bokeh_app.py",
-            "--args", "--model", args.model]
-        )
-    else:
-        bokeh_process = subprocess.Popen(
-            [sys.executable, "-m", "bokeh", "serve", "--allow-websocket-origin=127.0.0.1:5000", "scripts/bokeh_app.py", "--args"],
-        )
+        command.extend(["--args", "--model", args.model])
+    elif not args.no_flask:
+        command.append("--args")
+    bokeh_process = subprocess.Popen(command)
+
 
 def stop_processes():
-    """
-    Ends Flask and Bokeh processes cleanly.
-    """
-    global flask_process, bokeh_process
-
-    if flask_process:
-        flask_process.terminate()
+    processes = [("Flask", flask_process), ("Bokeh", bokeh_process)]
+    cleaned = True
+    # Stop all owned children before waiting for either of them.
+    for name, process in processes:
+        if process is not None and process.poll() is None:
+            try:
+                process.terminate()
+            except ProcessLookupError:
+                pass
+            except OSError as error:
+                print(f"Could not terminate {name}: {type(error).__name__}", file=sys.stderr)
+                cleaned = False
+    for name, process in processes:
+        if process is None:
+            continue
         try:
-            flask_process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            flask_process.kill()
-        print("Flask-Server beendet.")
-
-    if bokeh_process:
-        bokeh_process.terminate()
-        try:
-            bokeh_process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            bokeh_process.kill()
-        print("Bokeh-App beendet.")
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
+        except (OSError, subprocess.TimeoutExpired) as error:
+            print(f"Could not reap {name}: {type(error).__name__}", file=sys.stderr)
+            cleaned = False
+    return cleaned
 
 
-def handle_exit(signal_received, frame):
-    """
-    Handles the termination of the main process (e.g. by Ctrl+C).
-    """
-    print("\nTerminate processes...")
-    stop_processes()
-    sys.exit(0)
+def handle_exit(signum, frame):
+    global received_signal
+    # Cleanup belongs to the main flow, not a reentrant signal handler.
+    received_signal = signum
 
-if __name__ == "__main__":
+
+def child_exit_status():
+    if received_signal is not None:
+        return 128 + received_signal
+    statuses = [process.poll() for process in (bokeh_process, flask_process)
+                if process is not None]
+    # A simultaneous orderly exit must not hide the other child's failure.
+    for status in statuses:
+        if status is not None and status != 0:
+            return status if status >= 0 else 128 - status
+    if 0 in statuses:
+        return 0
+    return None
+
+
+def main():
     signal.signal(signal.SIGINT, handle_exit)
     signal.signal(signal.SIGTERM, handle_exit)
-    
-    if args.no_flask:
-        if args.model:
-        
-            subprocess.run([
-                        sys.executable, "-m", "bokeh", "serve",
-                        "scripts/bokeh_app.py",
-                        "--args", "--model", args.model
-                    ])
-            
-        else:
-            
-            subprocess.run([
-                        sys.executable, "-m", "bokeh", "serve",
-                        "scripts/bokeh_app.py"
-                    ])
-            
-        webbrowser.open("http://localhost:5006/bokeh_app")
-        
-    else:
-
-        try:
-            print("Starting Flask and Bokeh...")
-            start_bokeh()
-
-            time.sleep(2)
-
+    status = 1
+    try:
+        start_bokeh()
+        time.sleep(2)
+        status = child_exit_status()
+        if status is None and not args.no_flask:
             start_flask()
-
-            print("Both services are running. Press Ctrl+C to exit.")
-            
             time.sleep(2)
-            webbrowser.open("http://127.0.0.1:5000")
-            
-            while True:
+            status = child_exit_status()
+        if status is None:
+            # This checks process survival, not HTTP or application readiness.
+            print("Processes started. Press Ctrl+C to exit.")
+            status = child_exit_status()
+            if status is None:
+                url = "http://localhost:5006/bokeh_app" if args.no_flask else "http://127.0.0.1:5000"
+                webbrowser.open(url)
+            while status is None:
                 time.sleep(1)
-                
-        except Exception as e:
-            print(f"Error: {e}")
-            stop_processes()
-            sys.exit(1)
+                status = child_exit_status()
+    except Exception as error:
+        print(f"Error: {error}", file=sys.stderr)
+        status = 1
+    finally:
+        cleaned = stop_processes()
+    if not cleaned and status == 0:
+        return 1
+    return status
+
+
+if __name__ == "__main__":
+    sys.exit(main())

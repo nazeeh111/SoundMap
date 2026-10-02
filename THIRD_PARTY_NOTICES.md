@@ -2,7 +2,7 @@
 
 ## Original application
 
-The inherited application comes from [rabeaifeanyi/acoustic-camera, commit 876dedd0a637ad95d6036c2009b354188241ae7e](https://github.com/rabeaifeanyi/acoustic-camera/tree/876dedd0a637ad95d6036c2009b354188241ae7e). The 32-file pre-publication snapshot matches that source. Of the current retained files, 31 remain exact; the offline CLEAN-SC 3D evaluation kernel has the separately documented returned-y correction and explanatory comment.
+The inherited application comes from [rabeaifeanyi/acoustic-camera, commit 876dedd0a637ad95d6036c2009b354188241ae7e](https://github.com/rabeaifeanyi/acoustic-camera/tree/876dedd0a637ad95d6036c2009b354188241ae7e). The 32-file pre-publication snapshot matches that source. Of the current retained files, 30 remain exact. The offline CLEAN-SC 3D evaluation kernel has the separately documented returned-y correction and explanatory comment; `acoustic-camera/start.py` now supervises and cleans up its child processes in both launch modes.
 
 The pinned original application has no project license file or README grant. Redistribution authority for the remaining inherited application has not been verified. The local MIT notice covers new and authorized contributions, and the Acoular BSD notice below covers its identified component; neither supplies a grant for all other original application files.
 

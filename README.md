@@ -1,6 +1,6 @@
 # SoundMap
 
-Packages the application from [rabeaifeanyi/acoustic-camera](https://github.com/rabeaifeanyi/acoustic-camera/tree/876dedd0a637ad95d6036c2009b354188241ae7e). SoundMap adds command dispatch, verification documentation and a correction to the offline evaluation coordinate frame. Acoular-derived portions retain their separate BSD-3-Clause notices.
+Packages the application from [rabeaifeanyi/acoustic-camera](https://github.com/rabeaifeanyi/acoustic-camera/tree/876dedd0a637ad95d6036c2009b354188241ae7e). SoundMap adds command dispatch, launcher failure reporting, verification documentation and a correction to the offline evaluation coordinate frame. Acoular-derived portions retain their separate BSD-3-Clause notices.
 
 **Microphone-array measurements into sound-source maps.**
 
