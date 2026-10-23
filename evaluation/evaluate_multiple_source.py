@@ -115,7 +115,7 @@ def evaluate_all_frequencies(file_path, group, num, signal_path, num_sources):
 
     for freq in df["freq"].unique():
         df_freq = df[df["freq"] == freq]
-        result = create_result_row_single_frequency(df_freq, group, num, freq, signal_path, real_coords, speed_of_sound, num_sources)
+        result = create_result_row_single_frequency(df_freq, group, num, freq, real_coords, num_sources)
         results_all_freqs.append(result)
 
     return results_all_freqs

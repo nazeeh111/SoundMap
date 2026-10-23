@@ -273,7 +273,13 @@ class Processor:
         while not self.model_stop_event.is_set():
             data = next(gen)
 
-            self.csm_queue.put(data)
+            # Keep bounded backpressure while allowing stop_model to join us.
+            while not self.model_stop_event.is_set():
+                try:
+                    self.csm_queue.put(data, timeout=0.1)
+                    break
+                except queue.Full:
+                    continue
             
     def _predictor(self):
         """Prediction thread for the model."""
