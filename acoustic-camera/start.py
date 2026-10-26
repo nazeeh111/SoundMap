@@ -5,7 +5,6 @@ import signal
 import webbrowser
 from config import ConfigManager
 import argparse
-import bokeh.server.server
 
 
 CONFIG_PATH = "config/config.json"
@@ -16,7 +15,7 @@ bokeh_process = None
 received_signal = None
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model", type=str, help="Path to an explicit checkpoint (.keras)")
+parser.add_argument("--model", type=str, help="Model directory containing ckpt/best_ckpt/*.keras")
 parser.add_argument("--no-flask", action="store_true", help="Start only the Bokeh app without Flask")
 args, unknown = parser.parse_known_args()
 
