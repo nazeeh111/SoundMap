@@ -1,5 +1,5 @@
 """
-Camera Calibration Script for Acoustic Camera
+Camera Calibration Script for SoundMap
 
 This script calibrates a camera using a checkerboard pattern. 
 The calibration process involves detecting corners in a checkerboard pattern from multiple images

@@ -40,7 +40,7 @@ python soundmap.py run --no-flask --model /absolute/path/to/model-directory
 
 The Bokeh dashboard opens at `http://localhost:5006/bokeh_app` with `--no-flask`. Omitting that flag also starts the Flask camera wrapper at `http://127.0.0.1:5000`; its video route opens camera index 0 when requested. `--no-flask` omits that wrapper; it does not remove the checkpoint requirement. Stop the launcher with **Ctrl+C**. [Launcher checks and execution limits](docs/VERIFICATION.md) distinguish process cleanup from actual application readiness.
 
-For microphone geometry, device selection and the inherited model setup, see the [original setup guide](docs/REFERENCE.md). Live array acquisition, camera overlays and model inference have not been verified here.
+For microphone geometry, device selection and the inherited model setup, see the [setup guide](docs/REFERENCE.md). Live array acquisition, camera overlays and model inference have not been verified here.
 
 ## Processing layout
 
@@ -54,6 +54,6 @@ See [the verification record](docs/VERIFICATION.md) for dated checks and unavail
 
 ## Source and license scope
 
-[Source and notices](THIRD_PARTY_NOTICES.md) identifies the original application and Acoular-derived file. [LICENSE](LICENSE) covers new and authorized contributions; it does not establish a grant for the remaining inherited application. The pinned original application has no project license file or README grant, and separate redistribution permission has not been verified.
+The adapted application is used with permission to use and rebrand without author credit. [LICENSE](LICENSE) covers first-party contributions. Separate Acoular BSD-3-Clause terms remain in [third-party notices](THIRD_PARTY_NOTICES.md).
 
 Maintained by [nazeeh111](https://github.com/nazeeh111).

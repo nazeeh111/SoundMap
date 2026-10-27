@@ -1,11 +1,11 @@
-# Source and third-party notices
+# License scope
 
-## Original application
-
-The inherited application comes from [rabeaifeanyi/acoustic-camera, commit 876dedd0a637ad95d6036c2009b354188241ae7e](https://github.com/rabeaifeanyi/acoustic-camera/tree/876dedd0a637ad95d6036c2009b354188241ae7e). The 32-file pre-publication snapshot matches that source. Of the current retained files, 30 remain exact. The offline CLEAN-SC 3D evaluation kernel has the separately documented returned-y correction and explanatory comment; `acoustic-camera/start.py` now supervises and cleans up its child processes in both launch modes.
-
-The pinned original application has no project license file or README grant. Redistribution authority for the remaining inherited application has not been verified. The local MIT notice covers new and authorized contributions, and the Acoular BSD notice below covers its identified component; neither supplies a grant for all other original application files.
+The adapted application is used with permission to use and rebrand it without
+author credit. The project MIT license covers first-party contributions;
+it does not relicense separately owned components.
 
 ## Acoular-derived component
 
-`acoustic-camera/data_processing/SamplesProcessor.py` carries copyright (c) 2007–2021, Acoular Development Team. That header is preserved. The Acoular BSD-3-Clause license is included at `third_party/Acoular-LICENSE`; these separately owned portions are not relicensed under the new project MIT notice. Other installed dependencies retain their respective licenses.
+`acoustic-camera/data_processing/SamplesProcessor.py` retains copyright
+(c) 2007–2021, Acoular Development Team. Its complete BSD-3-Clause terms are in
+`third_party/Acoular-LICENSE`. Other installed dependencies retain their licenses.

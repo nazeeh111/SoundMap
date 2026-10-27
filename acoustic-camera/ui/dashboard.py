@@ -214,8 +214,8 @@ class Dashboard:
             """
             
         sidebar_spacer = Spacer(width=self.config.get('layout.sidebar.width')-self.config.get('layout.sidebar.content_width'))
-        # Header "Acoustic Camera"
-        header = Div(text=f"<h2 style='color:{self.config.get('ui.font_color')}; font-family:{self.config.get('ui.font')}; '>Acoustic Camera</h2>") #margin-left: 20px
+        # Header "SoundMap"
+        header = Div(text=f"<h2 style='color:{self.config.get('ui.font_color')}; font-family:{self.config.get('ui.font')}; '>SoundMap</h2>") #margin-left: 20px
         
         # Checkboxes for origin and mic-geom visibility
         self.microphone_checkboxes = CheckboxGroup(labels=["Show Microphone Geometry", "Show Origin"], active=[0, 1])#, width=self.config.get('layout.sidebar.width'))

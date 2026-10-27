@@ -1,6 +1,6 @@
 # SoundMap setup reference
 
-This guide covers the retained application setup. [Source and license scope](../THIRD_PARTY_NOTICES.md) documents its origins and SoundMap's additions.
+This guide covers the retained application setup. [Source and license scope](../THIRD_PARTY_NOTICES.md) documents its component license boundaries.
 
 This is a research/test implementation. Live acquisition, camera overlays and model inference require separate verification.
 

@@ -20,4 +20,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Scope: This license covers new and authorized project contributions. Separately owned Acoular-derived portions retain their BSD-3-Clause terms; see THIRD_PARTY_NOTICES.md.
+Scope: This MIT license covers SoundMap's first-party contributions. Adapted application code is used under separate permission; Acoular-derived portions retain their BSD-3-Clause terms. See THIRD_PARTY_NOTICES.md.
