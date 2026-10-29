@@ -8,11 +8,15 @@ import importlib.metadata
 import json
 from pathlib import Path
 import time
+from threading import RLock
 import xml.etree.ElementTree as ET
 
 import acoular as ac
 import h5py
 import numpy as np
+
+_CACHE_LOCK = RLock()
+_MAX_WORKING_BYTES = 512 * 1024 * 1024
 
 
 def digest(path):
@@ -46,7 +50,9 @@ def source_map(signal, geometry, *, frequency, z, bounds=(-1.5, 1.5, -1.5, 1.5),
         raise ValueError('Grid bounds must be increasing')
     if block_size not in (128, 256, 512, 1024, 2048, 4096):
         raise ValueError('FFT block size must be a power of two from 128 to 4096')
-    if (1 + (xmax-xmin)/increment) * (1 + (ymax-ymin)/increment) > 250000:
+    grid = ac.RectGrid(x_min=xmin, x_max=xmax, y_min=ymin, y_max=ymax, z=z, increment=increment)
+    grid_points = int(grid.size)
+    if grid_points > 250000:
         raise ValueError('Scan exceeds 250000 grid points; increase increment')
     with h5py.File(signal, 'r') as file:
         if 'time_data' not in file:
@@ -76,25 +82,45 @@ def source_map(signal, geometry, *, frequency, z, bounds=(-1.5, 1.5, -1.5, 1.5),
         raise ValueError('Invalid channels must be unique zero-based indices inside the recording')
     if len(microphones)-len(invalid_channels) < 2:
         raise ValueError('At least two valid microphone channels are required')
+    valid_channels = len(microphones)-len(invalid_channels)
+    # Acoular 25.3 calc_csm keeps upper, lower, combined and scaled complex128
+    # CSM arrays. Bound those buffers before constructing the spectral engine;
+    # the microphone-grid bound alone does not bound this quadratic allocation.
+    spectral_work_bytes = 4 * (block_size//2+1) * valid_channels**2 * np.dtype(np.complex128).itemsize
+    # BeamformerBase also allocates every frequency/grid result, even when
+    # synthetic() requests only a single third-octave band.
+    beamformer_result_bytes = (block_size//2+1) * grid_points * np.dtype(np.float64).itemsize
+    estimated_working_bytes = spectral_work_bytes + beamformer_result_bytes
+    if estimated_working_bytes > _MAX_WORKING_BYTES:
+        raise ValueError('Estimated spectral working buffers and beamformer result exceed 512 MiB; reduce FFT block size, valid channels or grid density')
     if calibration:
         factors = [float(p.attrib['factor']) for p in ET.parse(calibration).findall('.//pos')]
         if len(factors) != len(microphones) or not np.isfinite(factors).all() or min(factors) <= 0:
             raise ValueError('Calibration requires one positive finite factor per ordered channel')
-    if (1 + (xmax-xmin)/increment) * (1 + (ymax-ymin)/increment) * (len(microphones)-len(invalid_channels)) > 4000000:
+    if grid_points * valid_channels > 4000000:
         raise ValueError('Scan exceeds 4000000 microphone-grid pairs; increase increment')
     started = time.perf_counter()
-    ac.config.global_caching = 'none'
-    mics = ac.MicGeom(file=str(geometry), invalid_channels=invalid_channels)
-    grid = ac.RectGrid(x_min=xmin, x_max=xmax, y_min=ymin, y_max=ymax, z=z, increment=increment)
-    samples = ac.MaskedTimeSamples(file=str(signal), invalid_channels=invalid_channels, start=start, stop=end)
-    calibrated = ac.Calib(source=samples, file=str(Path(calibration).resolve()), invalid_channels=invalid_channels) if calibration else samples
-    spectra = ac.PowerSpectra(source=calibrated, window='Hanning', overlap='50%', block_size=block_size)
-    steer = ac.SteeringVector(mics=mics, grid=grid, env=ac.Environment(c=speed))
-    beamformer = ac.BeamformerBase(freq_data=spectra, steer=steer, r_diag=True)
-    try:
-        power = np.array(beamformer.synthetic(frequency, num=3), copy=True).reshape(grid.shape)
-    finally:
-        samples.h5f.close()
+    # Acoular's global policy overrides individual objects' cached=False flags.
+    # Serialize our offline calls while disabling result reuse, then restore the
+    # caller's policy even if graph construction, computation or cleanup fails.
+    with _CACHE_LOCK:
+        previous_cache_policy = ac.config.global_caching
+        samples = None
+        ac.config.global_caching = 'none'
+        try:
+            mics = ac.MicGeom(file=str(geometry), invalid_channels=invalid_channels)
+            samples = ac.MaskedTimeSamples(file=str(signal), invalid_channels=invalid_channels, start=start, stop=end)
+            calibrated = ac.Calib(source=samples, file=str(Path(calibration).resolve()), invalid_channels=invalid_channels) if calibration else samples
+            spectra = ac.PowerSpectra(source=calibrated, window='Hanning', overlap='50%', block_size=block_size)
+            steer = ac.SteeringVector(mics=mics, grid=grid, env=ac.Environment(c=speed))
+            beamformer = ac.BeamformerBase(freq_data=spectra, steer=steer, r_diag=True)
+            power = np.array(beamformer.synthetic(frequency, num=3), copy=True).reshape(grid.shape)
+        finally:
+            try:
+                if samples is not None and samples.h5f is not None:
+                    samples.h5f.close()
+            finally:
+                ac.config.global_caching = previous_cache_policy
     if not np.isfinite(power).all() or float(np.max(power)) <= 0:
         raise ValueError('Recording has no positive finite beamforming power in the requested band')
     coordinates = grid.gpos.reshape((3, *grid.shape))
@@ -106,6 +132,10 @@ def source_map(signal, geometry, *, frequency, z, bounds=(-1.5, 1.5, -1.5, 1.5),
         'channels': len(microphones)-len(invalid_channels), 'input_channels':len(microphones),
         'excluded_zero_based_channels':invalid_channels, 'sample_start':start, 'sample_stop':end, 'speed_of_sound_m_s': float(speed), 'fft_block_size': block_size,
         'increment_m': increment, 'bounds_m': [xmin,xmax,ymin,ymax],
+        'estimated_spectral_working_bytes': spectral_work_bytes,
+        'estimated_beamformer_result_bytes': beamformer_result_bytes,
+        'estimated_working_bytes': estimated_working_bytes,
+        'working_budget_bytes': _MAX_WORKING_BYTES,
         'input_sha256': digest(signal), 'geometry_sha256': digest(geometry),
         'calibration_sha256': digest(calibration) if calibration else None,
         'input': str(signal), 'geometry': str(geometry), 'calibration': str(calibration) if calibration else None,

@@ -61,3 +61,21 @@ flow correction, camera registration or trained neural inference. The separate
 `python scripts/verify_localization.py ...` and `test_offline_map` check generated
 ideal signals, channel/frame signs and changed-input localization at grid scale.
 They do not measure hardware accuracy.
+
+## Resource and caller-state limits
+
+The command admits at most 256 ordered microphones, 2,000,000 samples, 250,000
+scan points and 4,000,000 microphone/grid pairs. It also limits two dominant work allocations together to 512 MiB: four
+complex128 cross-spectral arrays of `(FFT size / 2 + 1) × valid channels × valid
+channels`, plus the float64 all-frequency result of `(FFT size / 2 + 1) × actual
+scan points`. Even a single-band request allocates that complete result. A valid small spatial
+grid alone does not prevent a multi-gigabyte spectral allocation. Reduce
+`--block-size`, increase `--increment`, or exclude known invalid channels when
+that separate bound fails.
+This estimates those spectral/result buffers, not the entire process's peak memory.
+
+Offline calls are serialized while Acoular result caching is disabled, with the
+caller's prior global policy restored on success and failure. The recording
+handle is also closed when constructing or computing the numerical graph fails.
+These guarantees cover this offline helper; they do not make arbitrary external
+Acoular calls thread-safe.

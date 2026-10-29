@@ -101,3 +101,28 @@ The historical checkout and baseline are separate inputs; supplying an old basel
 The full Python 3.11 application stack, live microphone array, camera, Bokeh/Flask UI, TensorFlow model route, trained weights, and measurement-dataset evaluations were not run. Source scripts named test_processing.py and test_devices.py were not treated as safe automated tests because they can use devices.
 
 These are bounded source and synthetic-runtime checks, not universal correctness or research-replication claims. The later change affects only the CLEAN-SC 3D evaluation return frame; original camera/streaming code, calibration, model implementation and recorded scientific images were preserved.
+
+## Resumed caller-state/resource checks
+
+An actual recorded-data call reproduced an unintended global side effect:
+`source_map` changed the caller's Acoular cache policy from `individual` to
+`none`. The scoped cleanup now restores that policy, including exceptional
+computation paths, and serializes this helper's calls while the global override
+is active. The same recorded input's power and coordinate arrays remain exactly
+equal to the retained baseline. No beamforming formula or precision changed.
+
+The prior point/grid limits did not bound the quadratic cross-spectral matrices.
+The new 512 MiB combined spectral/result-work limit is checked before the
+engine is constructed. A genuine 128-channel/4096-FFT HDF5 input with a tiny grid now fails
+clearly before its more-than-2-GiB CSM working allocation. A small actual Acoular
+CSM and beamformer result independently verify both byte calculations. A second
+valid 16-channel/4096-FFT input with fewer than250000scan points passes the old
+limits but would allocate about3.9GB of all-frequency results; it is now rejected
+before that allocation. Independent review identified this extra result storage
+after the first CSM-only guard, and the incomplete firstguard was not published. This is a preflight resource
+bound, not an OOM experiment or a peak-RSS benchmark. New actual-core tests also
+check policy restoration after a successful map and an all-zero signal error.
+A separate injected graph-construction failure checks cleanup only: the real
+recording handle is closed and the original cache policy restored. It is not
+counted as numerical beamforming evidence; the recorded/ideal numerical checks
+execute the production engine.
