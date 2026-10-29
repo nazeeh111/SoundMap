@@ -1,5 +1,42 @@
 # Verification
 
+## Recorded-data and classical readiness, 2026-10-29
+
+The default classical dashboard no longer selects a neural checkpoint or imports
+TensorFlow. Explicit missing/malformed model requests fail closed; missing UMA16
+acquisition stays disabled. Real Bokeh document construction (including classical
+controls) passes without device discovery, TensorFlow or OpenCV. This is app
+construction readiness, not a live audio test or HTTP readiness guarantee.
+
+All 30 repository tests pass on Python 3.12.13/macOS ARM64, including the 16
+existing launcher-process cases. The new production Acoular offline path locates
+two independent generated spherical-wave inputs at the expected coordinates
+within one 0.05 m grid interval, rejects malformed channel/rate/nonfinite data,
+and refuses to overwrite existing results. These are ideal synthetic checks.
+
+The [recorded-data command](OFFLINE.md) additionally processed the unchanged
+CC BY 4.0 wind-tunnel recording with its geometry/calibration, excluding channels
+1 and 7 consistently. Its strongest 4 kHz peak was (-0.25,-0.10,-0.68) m; changing
+the band to 5 kHz gave (-0.25,0.05,-0.68) m. These are map peaks on a supplied
+plane, not ground-truth localization errors. Current-source Bokeh HTML was
+rendered and visually inspected; the axes, relative dB scale and peak markers
+match the numerical map.
+
+An independent NumPy Welch/steering calculation differed from the 4 kHz map by
+9.35e-12 squared input units, 2.04e-7 relative to its peak (3.08e-7 at 5 kHz).
+Acoular 25.3 explicitly rounds phase arguments to float32 inside its optimized
+kernel even for float64 results. An explicit float32-phase reference reduced
+peak-normalized discrepancies to 4.52e-9 and 2.99e-9, but strict pointwise
+`allclose(rtol=1e-8, atol=1e-14)` still failed near small map values. No exact
+double-precision equivalence is claimed; failed trials were retained rather
+than relaxing that check. The passing coordinate checks are a separate gate.
+
+No microphone/camera capture, real neural inference, known-target measurement,
+flow correction, calibrated depth estimation or hardware accuracy is established.
+
+The older verification records below describe their then-current source.
+
+
 ## Launcher process checks
 
 The public command now observes Bokeh and Flask termination, preserves nonzero child status and cleans up its owned children. Previously, Bokeh-only failure became exit 0, the combined route ignored child exits, and unread Flask output pipes could block the child. Both modes now own their Bokeh process. Shutdown requests reach the application launcher through the public dispatcher; SIGINT produces exit 130 and SIGTERM produces exit 143. A child terminated by a signal uses the same `128 + signal` convention.

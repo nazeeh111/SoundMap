@@ -25,22 +25,48 @@ python scripts/verify_localization.py \
 
 The command writes generated HDF5 signals under `--work-dir`, prints each expected/returned coordinate pair, and saves a JSON receipt at `--output`. Exit 0 means all declared checks passed. The evaluation frame is **(−XML x, +XML y, +XML z)**; it is separate from the camera-overlay frame.
 
+## Process a real recording offline
+
+`python soundmap.py offline` computes a source map, peak coordinates, input hashes
+and settings in JSON, a numerical NPZ map, and a self-contained interactive HTML plot. It needs no devices,
+TensorFlow or model weights. The [recorded-data quickstart](docs/OFFLINE.md) uses
+a small CC BY 4.0 wind-tunnel recording with matching geometry and calibration.
+
+![Computed 4 kHz wind-tunnel source map; supplied z is -0.68 m, levels relative to peak](docs/recorded-airfoil-map.png)
+
+*Newly computed from Ennes Sarradj’s CC BY 4.0 recording; [recipe and attribution](docs/OFFLINE.md). Cyan markers are separated map peaks, which may include sidelobes.*
+
+The scan-plane depth is supplied; recorded-data execution does not establish
+independent localization accuracy. The older ideal coordinate check above stays
+separate from this measured-data path.
+
 ## Run the research dashboard
 
-The full application targets Python 3.11 and uses `requirements.txt`, separately from the offline environment. Its current startup expects a configured microphone array **and an available model checkpoint**, even when the dashboard starts in Beamforming mode. Weights are not bundled. A missing checkpoint prevents the dashboard from opening.
+Classical Beamforming is the default and needs **no neural checkpoint**. The
+optional model selector is available only with an explicit compatible checkpoint.
+Missing or malformed requested models fail with an actionable error.
 
 ```bash
-python -m pip install -r requirements.txt
-python soundmap.py --help
-# Live application; requires configured hardware and model files:
+python -m pip install -r requirements-classical.txt
+# Read-only readiness: does not discover or start any audio/camera device.
+python soundmap.py run --no-flask --no-device
+# Live classical dashboard; press Start only with authorized configured UMA16:
+python soundmap.py run --no-flask
+# Optional neural mode: install requirements-neural.txt, then supply trained weights:
 python soundmap.py run --no-flask --model /absolute/path/to/model-directory
 ```
 
-`--model` currently names a **directory**, not a `.keras` file. The application looks inside its `ckpt/best_ckpt/` subdirectory for `.keras` files whose names begin with an integer and a hyphen, then chooses the largest prefix. Without this option, it searches the hardcoded model directory in `acoustic-camera/models/`. The command runs from the application's required working directory, so use an absolute model-directory path.
+`--model` names a directory containing `ckpt/best_ckpt/<integer>-*.keras`; the
+largest integer prefix is selected. No weights are bundled, and neural inference
+remains unvalidated. An unavailable UMA16 disables acquisition instead of silently
+selecting the computer's default microphone.
 
-The Bokeh dashboard opens at `http://localhost:5006/bokeh_app` with `--no-flask`. Omitting that flag also starts the Flask camera wrapper at `http://127.0.0.1:5000`; its video route opens camera index 0 when requested. `--no-flask` omits that wrapper; it does not remove the checkpoint requirement. Stop the launcher with **Ctrl+C**. [Launcher checks and execution limits](docs/VERIFICATION.md) distinguish process cleanup from actual application readiness.
-
-For microphone geometry, device selection and the inherited model setup, see the [setup guide](docs/REFERENCE.md). Live array acquisition, camera overlays and model inference have not been verified here.
+Bokeh opens at `http://localhost:5006/bokeh_app` with `--no-flask`. For the optional
+Flask wrapper install `requirements-camera.txt` and omit `--no-flask`. Its camera
+feed is **disabled unless `--camera` is explicitly requested**; camera handles are
+released on stream termination. Stop the launcher with **Ctrl+C**. For microphone
+setup see [the setup guide](docs/REFERENCE.md). Live acquisition, camera registration
+and real neural inference remain separate unverified gates.
 
 ## Processing layout
 

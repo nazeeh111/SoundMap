@@ -34,10 +34,12 @@
     </style>
 </head>
 <body>
+    {% if camera_enabled %}
     <div id="video-container">
         <img src="{{ url_for('video_feed') }}" alt="Video Stream" style="width: 100%; height: 100%; object-fit: cover;">
     </div>
 
+    {% endif %}
     <div id="bokeh-container">
         {{ bokeh_script|safe }}
     </div>
