@@ -54,6 +54,6 @@ See [the verification record](docs/VERIFICATION.md) for dated checks and unavail
 
 ## Source and license scope
 
-The adapted application is used with permission to use and rebrand without author credit. [LICENSE](LICENSE) covers first-party contributions. Separate Acoular BSD-3-Clause terms remain in [third-party notices](THIRD_PARTY_NOTICES.md).
+The adapted application is used with permission to use and rebrand without author credit. [LICENSE](LICENSE) covers first-party contributions. Separate Acoular BSD-3-Clause terms remain in [the retained component license](third_party/Acoular-LICENSE).
 
 Maintained by [nazeeh111](https://github.com/nazeeh111).

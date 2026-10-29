@@ -1,6 +1,6 @@
 # SoundMap setup reference
 
-This guide covers the retained application setup. [Source and license scope](../THIRD_PARTY_NOTICES.md) documents its component license boundaries.
+This guide covers the retained application setup. The [project license](../LICENSE) and [Acoular component license](../third_party/Acoular-LICENSE) retain their separate scopes.
 
 This is a research/test implementation. Live acquisition, camera overlays and model inference require separate verification.
 
