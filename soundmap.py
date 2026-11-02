@@ -5,7 +5,7 @@ import signal
 import subprocess
 import sys
 
-COMMANDS = {'run': 'acoustic-camera/start.py'}
+COMMANDS = {'run': 'acoustic-camera/start.py', 'offline': 'scripts/offline_map.py'}
 
 
 def main(argv=None):

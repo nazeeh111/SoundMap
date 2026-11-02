@@ -26,11 +26,15 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+      - name: Install PortAudio runtime for classical dashboard imports
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y libportaudio2
       - name: Install observed offline-kernel dependencies
-        run: "python -m pip install --only-binary=:all: -r requirements-kernels.txt"
+        run: "python -m pip install --only-binary=:all: -r requirements-kernels.txt -r requirements-classical.txt"
       - name: Check dependency consistency
         run: python -m pip check
-      - name: Check command dispatch without devices
+      - name: Check command dispatch, real Bokeh document and offline map without devices
         run: python -m unittest discover -s tests -v
       - name: Check ideal synthetic evaluation coordinates
         run: python scripts/verify_localization.py --work-dir .verification/localization --output .verification/localization-result.json

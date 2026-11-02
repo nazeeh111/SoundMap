@@ -16,6 +16,8 @@ received_signal = None
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str, help="Model directory containing ckpt/best_ckpt/*.keras")
+parser.add_argument("--no-device", action="store_true", help="Read-only dashboard, no device discovery")
+parser.add_argument("--camera", action="store_true", help="Explicitly enable camera feed in Flask wrapper")
 parser.add_argument("--no-flask", action="store_true", help="Start only the Bokeh app without Flask")
 args, unknown = parser.parse_known_args()
 
@@ -23,7 +25,10 @@ args, unknown = parser.parse_known_args()
 def start_flask():
     global flask_process
     # Inherit output: unread PIPEs can block a child before it can exit.
-    flask_process = subprocess.Popen([sys.executable, "scripts/flask_app.py"])
+    command = [sys.executable, "scripts/flask_app.py"]
+    if args.camera:
+        command.append("--camera")
+    flask_process = subprocess.Popen(command)
     print("Flask process started at http://127.0.0.1:5000.")
 
 
@@ -33,10 +38,13 @@ def start_bokeh():
     if not args.no_flask:
         command.append("--allow-websocket-origin=127.0.0.1:5000")
     command.append("scripts/bokeh_app.py")
+    app_args = []
     if args.model:
-        command.extend(["--args", "--model", args.model])
-    elif not args.no_flask:
-        command.append("--args")
+        app_args.extend(["--model", args.model])
+    if args.no_device:
+        app_args.append("--no-device")
+    if app_args or not args.no_flask:
+        command.extend(["--args", *app_args])
     bokeh_process = subprocess.Popen(command)
 
 
