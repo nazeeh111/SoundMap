@@ -60,6 +60,13 @@ class Dashboard:
         self.real_y = self.config.get('app_default_settings.y')
         self.real_z = self.config.get('app_default_settings.z')
         
+        if processor.dev is None:
+            self.dashboard_layout = column(
+                Div(text="<h2>SoundMap</h2><p>No compatible UMA-16 microphone array configured. "
+                         "Acquisition is disabled. Use soundmap.py offline for recorded data.</p>"),
+                self.acoustic_camera_plot.fig)
+            return
+
         if processor.dev is not None:
             inside_width = self.config.get('layout.sidebar.content_width')
     
@@ -226,14 +233,15 @@ class Dashboard:
         # Problem: When stop is pressed to quickly and model has not properly started, error occurs
         self.measurement_button = Button(label="Start")
         
-        self.model_params_column = column(
-            self.saving_options,
-            self.cluster_results,
-            self.csm_block_size_input,
-            self.min_queue_size_input,
-            self.cluster_distance_input,
-            self.deviation_switch
-        )
+        if self.model_on:
+            self.model_params_column = column(
+                self.saving_options,
+                self.cluster_results,
+                self.csm_block_size_input,
+                self.min_queue_size_input,
+                self.cluster_distance_input,
+                self.deviation_switch
+            )
         
         if self.model_on and self.processor.dev is not None:
             self.sidebar_section = column(

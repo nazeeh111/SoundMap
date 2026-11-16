@@ -1,7 +1,6 @@
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1' #Severe calculation inaccuracies with some GPUs 
 
-import tensorflow as tf #type: ignore
 import numpy as np
 import acoular as ac
 import datetime
@@ -103,6 +102,8 @@ class Processor:
     def start_model(self):
         """ Start the model processing
         """
+        if not self.model_on or self.ckpt_path is None:
+            raise ValueError("Neural mode requires an explicitly configured compatible checkpoint")
         self._generators()
         print("\nStarting the model.")
         
@@ -181,6 +182,9 @@ class Processor:
         """ Setup the generators for the process
         """
         print("Setting up generators for the process.")
+        if self.device is None:
+            self.dev = None
+            return
         
         if self.ckpt_path is None or not self.model_on:
             self.dev = ac.SoundDeviceSamplesGenerator(device=self.device, numchannels=16)
@@ -247,6 +251,7 @@ class Processor:
         self.ref_mic_index = 0
         
         # Load the model
+        import tensorflow as tf
         self.model = tf.keras.models.load_model(self.ckpt_path)
         
     def _model_threads(self):
@@ -364,6 +369,8 @@ class Processor:
         """
         print("\nStarting beamforming.")
         
+        if self.device is None:
+            raise ValueError('No configured microphone array; use the offline command for recorded data')
         self._generators()
         
         self.data_filename, self.results_filename = self._get_result_filenames('beamforming')
@@ -483,6 +490,8 @@ class Processor:
     def update_z(self, z):
         self.z = z
         self.beamforming_grid = ac.RectGrid(x_min=self.x_min, x_max=self.x_max, y_min=self.y_min, y_max=self.y_max, z=z, increment=self.increment)
+        if self.dev is not None:
+            self.steer.grid = self.beamforming_grid
         
     def update_frequency(self, frequency):
         """ Update the target frequency for the model
@@ -490,7 +499,10 @@ class Processor:
         with self.frequency_lock:
             self.frequency = frequency
 
-        self.f_ind = self.fft.fftfreq() -  self.frequency
+        if self.dev is not None:
+            self.filter.band = frequency
+        if self.model_on and self.ckpt_path is not None:
+            self.f_ind = int(np.argmin(np.abs(self.fft.fftfreq() - frequency)))
         print(f"Frequency updated to {self.frequency} Hz.")
         
     def update_csm_block_size(self, block_size):

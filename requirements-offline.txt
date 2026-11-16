@@ -1,0 +1,7 @@
+# Python 3.12. No TensorFlow, camera or acquisition dependencies.
+acoular==25.3
+numpy==1.26.4
+scipy==1.14.0
+h5py==3.11.0
+traits==6.4.3
+bokeh==3.5.2

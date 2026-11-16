@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "soundmap-recorded"
+version = "0.1.0.dev0"
+description = "Recorded-data classical source maps for SoundMap"
+requires-python = ">=3.12"
+dependencies = ["acoular==25.3", "bokeh==3.5.2", "h5py>=3.11", "scipy>=1.14,<1.16"]
+
+[project.scripts]
+soundmap-offline = "scripts.offline_map:main"
+
+[tool.setuptools]
+packages = ["evaluation", "scripts"]
+license-files = ["LICENSE", "third_party/Acoular-LICENSE"]
