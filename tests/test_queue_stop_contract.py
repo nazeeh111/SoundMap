@@ -79,6 +79,10 @@ class QueueStopContractTests(unittest.TestCase):
         self.obj.csm_thread = self.start('producer', lambda: self.api['_csm_generator'](self.obj))
 
     def stop_processing(self):
+        writer = getattr(self.obj, 'save_time_samples_thread', None)
+        self.obj.save_time_samples_thread = writer
+        objects = (self.obj.fft, self.obj.writeH5) if writer is not None else (self.obj.fft,)
+        self.obj._model_registration = (self.obj.sample_splitter, objects)
         return self.start('stopper', lambda: self.api['stop_model'](self.obj))
 
     def cleanup_workers(self):

@@ -78,8 +78,12 @@ Bokeh opens at `http://localhost:5006/bokeh_app` with `--no-flask`. For the opti
 Flask wrapper install `requirements-camera.txt` and omit `--no-flask`. Its camera
 feed is **disabled unless `--camera` is explicitly requested**; camera handles are
 released on stream termination. Stop the launcher with **Ctrl+C**. For microphone
-setup see [the setup guide](docs/REFERENCE.md). Live acquisition, camera registration
+setup see [the setup guide](docs/REFERENCE.md). The dashboard reports **Stopping** until its current acquisition and cleanup actually return; results may be partial. A blocked device or computation can leave it stopping indefinitely, and a cleanup error leaves restart unavailable. Stop does not forcibly interrupt a native operation. A closed browser session requests the same stop, and another local dashboard session cannot start a measurement until the current acquisition has cleaned up. Each new measurement waits for newly produced results before updating its plots. The direct Python processor stop methods remain synchronous. Live acquisition, camera registration
 and real neural inference remain separate unverified gates.
+The save-time-data choice is fixed when a measurement starts. Queued option
+changes are restored while it owns acquisition. Stop waits for the actual
+allocated recording writer and removes its original splitter registrations before
+admitting a new measurement, even if configuration was changed programmatically.
 
 ## Processing layout
 
