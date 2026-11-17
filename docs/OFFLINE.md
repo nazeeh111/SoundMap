@@ -40,6 +40,33 @@ wind-tunnel recording from 56 microphones (25,600 samples at 51,200 Hz,
 The exclusions, scan plane, speed, sample slice and FFT block above follow the
 [Acoular airfoil frequency-domain example](https://acoular.org/acoular/v26.01/auto_examples/wind_tunnel_examples/example_airfoil_in_open_jet_freq_domain_methods.html).
 
+## Analyze a multichannel WAV export
+
+Pass an interleaved integer PCM `.wav` file to the same `--input` option and
+supply the geometry XML in **exported channel order**. Export one channel per
+microphone from the synchronized recording. Channel 1 in the editor becomes
+channel index 0 in SoundMap. Keep the channels separate and use one common
+sample rate and time origin. A stereo mixdown of a larger array discards the
+channel measurements needed for localization.
+
+The command accepts 8-, 16-, packed 24-, and 32-bit little-endian integer PCM
+containers, including WAVE_FORMAT_EXTENSIBLE with a PCM subtype and a valid
+precision from one bit up to the container width. Extensible integer samples use
+the standard left-aligned representation. The RIFF size, chunk boundaries and
+padding, frame alignment and PCM data length must agree. The reader admits up
+to 4,096 RIFF chunks. Compressed or floating-point WAV, RF64, and separate
+per-microphone files are outside this input contract. `--start` and `--stop` select frames as with HDF5. If the decoded
+selection exceeds 128 MiB, choose a shorter frame range. The 2,000,000-frame
+recording limit also applies to WAV.
+
+Integer amplitudes are divided by the signed full-scale magnitude after
+centering unsigned 8-bit samples at 128. JSON identifies the WAV input, PCM
+container width and units, and hashes the actual WAV bytes. Apply calibration
+factors in normalized amplitude units. Keep the original digital gain when
+using pressure calibration. Calibration derived for raw integer counts must be
+converted before use. The command uses channel order from the file, without
+inferring a microphone layout from WAV speaker labels.
+
 ## Input and coordinate contract
 
 - HDF5 dataset `time_data`: real finite `[sample, channel]` data, with dataset
@@ -66,7 +93,8 @@ They do not measure hardware accuracy.
 ## Resource and caller-state limits
 
 The command admits at most 256 ordered microphones, 2,000,000 samples, 250,000
-scan points and 4,000,000 microphone/grid pairs. It also limits two dominant work allocations together to 512 MiB: four
+scan points and 4,000,000 microphone/grid pairs. Dominant work allocations
+share a 512 MiB budget: the decoded WAV selection, if present, plus four
 complex128 cross-spectral arrays of `(FFT size / 2 + 1) × valid channels × valid
 channels`, plus the float64 all-frequency result of `(FFT size / 2 + 1) × actual
 scan points`. Even a single-band request allocates that complete result. A valid small spatial

@@ -9,6 +9,7 @@ import ctypes
 import errno
 import os
 import shutil
+import struct
 import sys
 import tempfile
 import importlib.metadata
@@ -25,6 +26,7 @@ import numpy as np
 _CACHE_LOCK = RLock()
 _MAX_WORKING_BYTES = 512 * 1024 * 1024
 _MAX_CLEAN_WORK_ITEMS = 200_000_000
+_MAX_PCM_BYTES = 128 * 1024 * 1024
 
 
 def digest(path):
@@ -33,6 +35,90 @@ def digest(path):
         for block in iter(lambda: file.read(1024*1024), b''):
             checksum.update(block)
     return checksum.hexdigest()
+
+
+def _pcm_format(recording):
+    """Validate RIFF bounds and return PCM metadata plus the first frame offset."""
+    header = recording.read(12)
+    if len(header) != 12 or header[:4] != b'RIFF' or header[8:12] != b'WAVE':
+        raise ValueError('Expected a little-endian RIFF/WAVE recording')
+    end = 8 + int.from_bytes(header[4:8], 'little')
+    if end != os.fstat(recording.fileno()).st_size:
+        raise ValueError('WAV RIFF size does not match the recording')
+    sample_format = None
+    data = None
+    # Limit metadata work even if the recording is mostly empty chunks.
+    for _ in range(4096):
+        if recording.tell() == end:
+            break
+        header = recording.read(8)
+        if len(header) != 8:
+            raise ValueError('Incomplete WAV chunk header')
+        kind, size = struct.unpack('<4sI', header)
+        offset = recording.tell()
+        next_chunk = offset + size + (size % 2)
+        if next_chunk > end:
+            raise ValueError('WAV chunk exceeds RIFF bounds')
+        if kind == b'fmt ':
+            if sample_format is not None or size < 16:
+                raise ValueError('Expected one complete WAV format chunk')
+            fields = recording.read(min(size, 40))
+            tag, channels, rate, byte_rate, alignment, bits = struct.unpack_from('<HHIIHH', fields)
+            if tag == 0xfffe:
+                extension_size, valid_bits = struct.unpack_from('<HH', fields, 16) if size >= 40 else (0, 0)
+                pcm_subtype = bytes.fromhex('0100000000001000800000aa00389b71')
+                if not (22 <= extension_size <= size - 18 and 1 <= valid_bits <= bits
+                        and fields[24:40] == pcm_subtype):
+                    raise ValueError('Invalid WAVE_FORMAT_EXTENSIBLE integer PCM format')
+            elif tag != 1:
+                raise ValueError('Expected an uncompressed integer PCM WAV')
+            if bits not in (8, 16, 24, 32):
+                raise ValueError('Expected an 8-, 16-, 24- or 32-bit PCM container')
+            width = bits // 8
+            if not channels or not rate or alignment != channels * width or byte_rate != alignment * rate:
+                raise ValueError('Inconsistent WAV sample rate or frame alignment')
+            sample_format = width, channels, rate, alignment
+        elif kind == b'data':
+            if sample_format is None or data is not None:
+                raise ValueError('Expected one WAV data chunk after the format chunk')
+            data = offset, size
+        recording.seek(next_chunk)
+    if recording.tell() != end:
+        raise ValueError('WAV exceeds the 4096 RIFF chunk limit')
+    if data is None:
+        raise ValueError('WAV requires a data chunk')
+    width, channels, rate, alignment = sample_format
+    offset, size = data
+    if size % alignment:
+        raise ValueError('WAV data is not a whole number of frames')
+    return width, channels, size // alignment, float(rate), offset
+
+
+def _read_pcm(recording, width, channels, data_offset, start, end):
+    """Decode the selected frames as normalized full-scale amplitudes."""
+    # Float64 preserves all 32 PCM bits; other signed PCM fits in float32.
+    dtype = np.dtype(np.float64 if width == 4 else np.float32)
+    if (end - start) * channels * dtype.itemsize > _MAX_PCM_BYTES:
+        raise ValueError('Decoded WAV selection exceeds 128 MiB; narrow the sample range')
+    frame_bytes = channels * width
+    recording.seek(data_offset + start * frame_bytes)
+    values = np.empty((end - start, channels), dtype=dtype)
+    scale = 2.0 ** (8 * width - 1)
+    for offset in range(0, len(values), 8192):
+        batch = values[offset:offset + 8192]
+        raw = recording.read(len(batch) * frame_bytes)
+        if len(raw) != len(batch) * frame_bytes:
+            raise ValueError('WAV data is shorter than the declared frame count')
+        if width == 3:
+            triplets = np.frombuffer(raw, dtype=np.uint8).reshape(-1, 3).astype(np.int32)
+            words = triplets[:, 0] | (triplets[:, 1] << 8) | (triplets[:, 2] << 16)
+            counts = (words ^ 0x800000) - 0x800000
+        elif width == 1:
+            counts = np.frombuffer(raw, dtype=np.uint8).astype(np.int16) - 128
+        else:
+            counts = np.frombuffer(raw, dtype=f'<i{width}')
+        np.divide(counts.reshape(batch.shape), scale, out=batch)
+    return values
 
 
 def source_map(signal, geometry, *, frequency, z, bounds=(-1.5, 1.5, -1.5, 1.5),
@@ -65,7 +151,8 @@ def source_maps(signal, geometry, *, frequencies, z, bounds=(-1.5, 1.5, -1.5, 1.
             if original is None:
                 snapshots[name] = None
                 continue
-            snapshot = Path(directory) / (name + original.suffix)
+            suffix = '.wav' if name == 'input' and Path(signal).suffix.lower() == '.wav' else original.suffix
+            snapshot = Path(directory) / (name + suffix)
             with original.open('rb') as source, snapshot.open('xb') as target:
                 shutil.copyfileobj(source, target, length=1024 * 1024)
             snapshot.chmod(0o400)
@@ -86,8 +173,7 @@ def _source_maps_snapshot(signal, geometry, *, frequencies, z, bounds=(-1.5, 1.5
                increment=0.05, speed=343.0, block_size=1024, calibration=None, invalid_channels=(), start=0, stop=None, method="conventional"):
     """Return a linear-power map and provenance; channel i matches XML position i.
 
-    Input: Acoular HDF5 `time_data` [sample, channel], with dataset attribute
-    `sample_freq` in Hz. Values must be finite real numbers. Calibration factors
+    Accept Acoular HDF5 or interleaved integer PCM WAV. Calibration factors
     multiply the samples in XML order. No implicit coordinate mirrors are used.
     """
     signal, geometry = Path(signal).resolve(), Path(geometry).resolve()
@@ -109,15 +195,26 @@ def _source_maps_snapshot(signal, geometry, *, frequencies, z, bounds=(-1.5, 1.5
     grid_points = int(grid.size)
     if grid_points > 250000:
         raise ValueError('Scan exceeds 250000 grid points; increase increment')
-    with h5py.File(signal, 'r') as file:
-        if 'time_data' not in file:
-            raise ValueError('HDF5 requires a time_data dataset')
-        data = file['time_data']
-        if data.ndim != 2 or data.shape[1] != len(microphones):
+    is_wav = signal.suffix.lower() == '.wav'
+    pcm = None
+    with (signal.open('rb') if is_wav else h5py.File(signal, 'r')) as recording:
+        if is_wav:
+            width, channels, total_samples, sample_rate, data_offset = _pcm_format(recording)
+            pcm_bits = 8 * width
+        else:
+            if 'time_data' not in recording:
+                raise ValueError('HDF5 requires a time_data dataset')
+            data = recording['time_data']
+            if data.ndim != 2:
+                raise ValueError('Data channel count must equal ordered geometry positions')
+            total_samples, channels = data.shape
+            sample_rate = float(data.attrs.get('sample_freq', float('nan')))
+            if data.dtype.kind not in 'fiu':
+                raise ValueError('Require finite real samples, at least one FFT block and at most 2000000 samples')
+        if channels != len(microphones):
             raise ValueError('Data channel count must equal ordered geometry positions')
-        if not block_size <= data.shape[0] <= 2000000 or data.dtype.kind not in 'fiu':
+        if not block_size <= total_samples <= 2000000:
             raise ValueError('Require finite real samples, at least one FFT block and at most 2000000 samples')
-        sample_rate = float(data.attrs.get('sample_freq', float('nan')))
         if not np.isfinite(sample_rate) or sample_rate <= 0 or any(not 0 < f < sample_rate / 2 for f in frequencies):
             raise ValueError('sample_freq must be positive Hz and frequency strictly below Nyquist')
         if any(f * 2**(1/6) >= sample_rate / 2 for f in frequencies):
@@ -134,16 +231,18 @@ def _source_maps_snapshot(signal, geometry, *, frequencies, z, bounds=(-1.5, 1.5
                               fft_bin_indices=list(range(int(first), int(last))),
                               fft_frequencies_hz=fft_frequencies[first:last].tolist(),
                               fft_spacing_hz=sample_rate / block_size))
-        for offset in range(0, data.shape[0], 8192):
-            if not np.isfinite(data[offset:offset+8192]).all():
-                raise ValueError('Recording contains nonfinite samples')
-        total_samples = int(data.shape[0])
         if not isinstance(start, int) or start < 0 or (stop is not None and (not isinstance(stop, int) or stop > total_samples)):
             raise ValueError('Sample start/stop must be integer indices inside the recording')
         end = total_samples if stop is None else stop
         if end-start < block_size:
             raise ValueError('Selected sample range must contain at least one FFT block')
         sample_count = end-start
+        if is_wav:
+            pcm = _read_pcm(recording, width, channels, data_offset, start, end)
+        else:
+            for offset in range(0, total_samples, 8192):
+                if not np.isfinite(data[offset:offset+8192]).all():
+                    raise ValueError('Recording contains nonfinite samples')
     invalid_channels = list(invalid_channels)
     if len(set(invalid_channels)) != len(invalid_channels) or any(not isinstance(i,int) or not 0 <= i < len(microphones) for i in invalid_channels):
         raise ValueError('Invalid channels must be unique zero-based indices inside the recording')
@@ -157,9 +256,9 @@ def _source_maps_snapshot(signal, geometry, *, frequencies, z, bounds=(-1.5, 1.5
     # BeamformerBase also allocates every frequency/grid result, even when
     # synthetic() requests only a single third-octave band.
     beamformer_result_bytes = (block_size//2+1) * grid_points * np.dtype(np.float64).itemsize
-    estimated_working_bytes = spectral_work_bytes + beamformer_result_bytes
+    estimated_working_bytes = spectral_work_bytes + beamformer_result_bytes + (pcm.nbytes if is_wav else 0)
     if estimated_working_bytes > _MAX_WORKING_BYTES:
-        raise ValueError('Estimated spectral working buffers and beamformer result exceed 512 MiB; reduce FFT block size, valid channels or grid density')
+        raise ValueError('Estimated spectral working buffers and beamformer result exceed 512 MiB; reduce FFT block size, valid channels, grid density or WAV sample range')
     if calibration:
         factors = [float(p.attrib['factor']) for p in ET.parse(calibration).findall('.//pos')]
         if len(factors) != len(microphones) or not np.isfinite(factors).all() or min(factors) <= 0:
@@ -194,7 +293,10 @@ def _source_maps_snapshot(signal, geometry, *, frequencies, z, bounds=(-1.5, 1.5
         ac.config.global_caching = 'none'
         try:
             mics = ac.MicGeom(file=str(geometry), invalid_channels=invalid_channels)
-            samples = ac.MaskedTimeSamples(file=str(signal), invalid_channels=invalid_channels, start=start, stop=end)
+            if is_wav:
+                samples = ac.MaskedTimeSamples(data=pcm, sample_freq=sample_rate, invalid_channels=invalid_channels)
+            else:
+                samples = ac.MaskedTimeSamples(file=str(signal), invalid_channels=invalid_channels, start=start, stop=end)
             calibrated = ac.Calib(source=samples, file=str(Path(calibration).resolve()), invalid_channels=invalid_channels) if calibration else samples
             spectra = ac.PowerSpectra(source=calibrated, window='Hanning', overlap='50%', block_size=block_size)
             if method == 'clean-sc':
@@ -246,6 +348,10 @@ def _source_maps_snapshot(signal, geometry, *, frequencies, z, bounds=(-1.5, 1.5
                    'No flow correction, camera registration, neural inference or physical accuracy validation.',
                    'CLEAN-SC resolves sparse coherent components, not a guarantee of distinct or closely spaced sources; compare with conventional maps.'],
     }
+    if is_wav:
+        report.update(input_format='wav-pcm', pcm_bits=pcm_bits, estimated_pcm_buffer_bytes=pcm.nbytes,
+                      power_units='squared normalized full-scale amplitudes after optional calibration factors; '
+                                  'absolute SPL requires pressure calibration')
     reports = [dict(report, frequency_hz=frequency, frequency_band=band,
                     sweep_band_count=len(frequencies), retained_band_map_bytes=retained_map_bytes,
                     compute_scope='Shared spectral graph and all requested bands; excludes snapshots and input validation')
