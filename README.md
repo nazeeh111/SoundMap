@@ -48,6 +48,8 @@ Use `soundmap-offline --help` to see the inputs and options. The source launcher
 and settings in JSON, a numerical NPZ map, and a self-contained interactive HTML plot. It needs no devices,
 TensorFlow or model weights. The [recorded-data quickstart](docs/OFFLINE.md) uses
 a small CC BY 4.0 wind-tunnel recording with matching geometry and calibration.
+For field recorders and audio editors, the same command accepts
+[ordered multichannel PCM WAV](docs/OFFLINE.md#analyze-a-multichannel-wav-export).
 
 The default recorded-data method is **conventional Acoular `BeamformerBase`**. Add `--method clean-sc` for Acoular 25.3 CLEAN-SC deconvolution, or use `--frequencies 4000 5000` in place of `--frequency 4000` to compute a shared-input sweep. For example, after preparing the inputs described in the quickstart:
 

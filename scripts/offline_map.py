@@ -1,4 +1,4 @@
-"""Map a recorded multichannel HDF5 file without microphones, camera, or weights."""
+"""Map a multichannel HDF5 or integer PCM WAV recording without microphones, camera, or weights."""
 import argparse
 import json
 from pathlib import Path
@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--input', required=True, type=Path)
+    parser.add_argument('--input', required=True, type=Path, help='Acoular HDF5 or interleaved integer PCM .wav')
     parser.add_argument('--geometry', required=True, type=Path)
     parser.add_argument('--calibration', type=Path)
     parser.add_argument('--invalid-channels', type=int, nargs='*', default=[], help='Zero-based bad channels, removed from data, geometry and calibration together')
