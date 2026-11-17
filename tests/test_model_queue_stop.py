@@ -59,6 +59,8 @@ class ModelQueueTests(unittest.TestCase):
         self.consumer = threading.Thread(target=self.stop.wait, daemon=True)
         self.obj.csm_thread = self.producer
         self.obj.compute_prediction_thread = self.consumer
+        self.obj.save_time_samples_thread = None
+        self.obj._model_registration = (self.obj.sample_splitter, (self.obj.fft,))
         self.stop_method = methods['stop_model']
         self.stopper = None
         self.addCleanup(self.release_workers)
