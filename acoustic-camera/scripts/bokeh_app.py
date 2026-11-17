@@ -20,7 +20,7 @@ def build_document(doc, *, model=None, no_device=False):
     processor = Processor(config, device, geometry, 'results', checkpoint, checkpoint is not None,
                           config.get('app_default_settings.z'))
     alphas = calculate_alphas(dx=config.get('app_settings.dx'), dz=config.get('app_settings.dz'))
-    dashboard = Dashboard(config, processor, checkpoint is not None, alphas)
+    dashboard = Dashboard(config, processor, checkpoint is not None, alphas, document=doc)
     doc.title = 'SoundMap'
     doc.add_root(dashboard.get_layout())
     return dashboard

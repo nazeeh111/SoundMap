@@ -117,3 +117,66 @@ may be sidelobes, not additional known sources. This is a software demonstration
 not a recording or a measurement of physical localization accuracy. Its SVG
 SHA-256 is `84ca991689252a7cc92f9a95364ab1c300f43d720e606a37ff2225155eb7716f`.
 The separate wind-tunnel image in the README retains its recorded-data attribution.
+
+## Frequency sweeps from the same captured inputs
+
+Use `--frequencies 3072 5120` instead of `--frequency 3072` to analyze up to 32
+distinct third-octave bands together. The installed `soundmap-offline` and source
+CLI accept the same option. Input snapshots, validation, CSM and beamforming
+graph are shared; the existing one-band command and output layout stay available.
+A sweep publishes a new directory containing `sweep.json` and `band-01/`,
+`band-02/`, etc., each with the usual measurements, NPZ and offline HTML report.
+Every band succeeds before the containing directory is published. A later-band
+compute or render failure leaves no published partial sweep and permits retry.
+
+Each band's `frequency_band` receipt gives the nominal lower/upper edges, actual
+FFT bin indices/frequencies and spacing. Integration includes the lower edge and
+excludes the upper edge, matching the installed Acoular implementation. Bands
+containing no FFT bins are rejected before spectral construction; increase
+`--block-size` to improve frequency resolution. A nonempty band does not establish
+adequate resolution or physical accuracy. Shared `compute_seconds` measures the
+entire sweep's spectral graph and maps, excluding snapshots and input validation;
+it is not a separate per-band duration. Retained map arrays count toward the
+512 MiB work admission in addition to the spectral and all-frequency buffers.
+
+The Python `source_maps(..., frequencies=[...])` returns `(powers, coordinates,
+reports)`, preserving requested order. `save_maps(...)` publishes these together.
+`source_map(...)` remains the scalar API and uses the same implementation.
+
+## Optional CLEAN-SC deconvolution
+
+Add `--method clean-sc` to either a scalar map or a frequency sweep. The default
+remains `--method conventional` and its numerical map is unchanged. CLEAN-SC uses
+Acoular's existing `BeamformerCleansc`, not a new SoundMap algorithm. It can isolate
+sparse coherent components that conventional peak picking confuses with the broad
+main lobe or sidelobes. HTML, JSON and sweep entries identify the selected method;
+keep that identity when comparing maps.
+
+For example, add `--method clean-sc` to the airfoil command above and choose a new
+output directory. The same recorded channels, calibration, third-octave FFT bins,
+signed plane and coordinates are used. No TensorFlow, weights, camera or devices
+are required. Algorithm controls are explicit in each receipt: automatic maximum
+`2 * valid channels` iterations per frequency, damping 0.6 and stopn 3. These are
+Acoular defaults, not retuned experimental parameters. The receipt records the
+maximum, not an observed iteration count or a convergence certificate.
+
+CLEAN-SC's repeated beamforming/coherence work is admitted separately, at most
+200 million work items. The proxy counts the initial grid/CSM products plus the
+automatic maximum iterations of grid/channel, CSM and 20 coherence-refinement
+vector products per unique requested FFT bin. Overlapping bands share bins.
+This is a dominant-work proxy, not a FLOP count or runtime guarantee. Additional
+CSM/map scratch estimates join the existing 512 MiB buffer admission; the estimate
+is still not whole-process peak memory. Reduce FFT size, band count, channels or
+grid density when a bound is exceeded.
+
+CLEAN-SC produces grid-point component powers; its point-sparse output is not a
+source-count guarantee. Closely spaced, coherent or distributed sources, wrong
+geometry/calibration and reflections can remain unresolved or misleading. The
+independently generated two-source software fixtures include a close-source case
+that **neither method resolves** at the chosen grid/band. No hardware localization
+accuracy, broad statistical improvement or absolute SPL calibration is established.
+
+References: [Acoular CLEAN-SC API](https://acoular.org/acoular/api_ref/generated/acoular.fbeamform.html),
+Pieter Sijtsma (2007), *CLEAN based on spatial source coherence*, listed on the
+[author's publications page](https://www.psa3.nl/publications-2/). Existing Acoular
+license and provenance remain in `third_party/Acoular-LICENSE`.

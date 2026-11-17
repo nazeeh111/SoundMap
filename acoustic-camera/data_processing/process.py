@@ -59,6 +59,8 @@ class Processor:
         self.z = Lock()
         self.result_lock = Lock()
         self.beamforming_result_lock = Lock()
+        self._model_result_revision = 0
+        self._beamforming_result_revision = 0
         
         # Path to the model checkpoint
         self.ckpt_path = ckpt_path
@@ -104,6 +106,7 @@ class Processor:
         """
         if not self.model_on or self.ckpt_path is None:
             raise ValueError("Neural mode requires an explicitly configured compatible checkpoint")
+        self._model_log_data = bool(self.log_data)
         self._generators()
         print("\nStarting the model.")
         
@@ -114,17 +117,15 @@ class Processor:
         self.writeH5.name = f"{self.data_filename}.h5"
         self._setup_model()
         
-        if self.log_data:
-            self.sample_splitter.register_object(self.fft, self.writeH5)
-            
-        else:
-            self.sample_splitter.register_object(self.fft)
+        objects = (self.fft, self.writeH5) if self._model_log_data else (self.fft,)
+        self._model_registration = (self.sample_splitter, objects)
+        self.sample_splitter.register_object(*objects)
         
         print("Registered objects from sample splitter.")
         
         self._model_threads()
         
-        if self.log_data:
+        if self.save_time_samples_thread is not None:
             print("Starting Data Saving thread.")
             self.save_time_samples_thread.start()
         
@@ -151,7 +152,7 @@ class Processor:
         self.compute_prediction_thread.join() 
         print("Prediction thread stopped.")
         
-        if self.log_data:
+        if self.save_time_samples_thread is not None:
             self.save_time_samples_thread.join()
             print("Data Saving thread stopped.")
 
@@ -163,11 +164,8 @@ class Processor:
                 break
         print("CSM queue cleared.")
         
-        if self.log_data:
-            self.sample_splitter.remove_object(self.fft, self.writeH5)
-            
-        else:
-            self.sample_splitter.remove_object(self.fft)
+        splitter, objects = self._model_registration
+        splitter.remove_object(*objects)
             
         print("Removed objects from sample splitter.")
         
@@ -178,6 +176,14 @@ class Processor:
         with self.result_lock:
             return self.results.copy()
          
+    def get_model_snapshot(self):
+        with self.result_lock:
+            return self._model_result_revision, self.results.copy()
+
+    def get_beamforming_snapshot(self):
+        with self.beamforming_result_lock:
+            return self._beamforming_result_revision, self.beamforming_results.copy()
+
     def _generators(self):
         """ Setup the generators for the process
         """
@@ -267,8 +273,9 @@ class Processor:
         self.csm_thread = Thread(target=self._csm_generator)
         self.compute_prediction_thread = Thread(target=self._predictor)
         
-        if self.log_data:
-            self.save_time_samples_thread = Thread(target=self._save_time_samples) 
+        self.save_time_samples_thread = (
+            Thread(target=self._save_time_samples) if self._model_log_data else None
+        ) 
         
     def _csm_generator(self):
         """ CSM generator thread for the model
@@ -328,14 +335,18 @@ class Processor:
 
             # Ergebnisse speichern
             with self.result_lock:
+                if self.model_stop_event.is_set():
+                    break
                 self.results = {
                     'x': loc_pred[0].tolist(),
                     'y': loc_pred[1].tolist(),
                     'z': loc_pred[2].tolist(),
                     's': strength_pred.tolist()
                 }
+                self._model_result_revision += 1
 
-            self._save_results()
+            if not self.model_stop_event.is_set():
+                self._save_results()
 
 
     def _preprocess_csm(self, data):
@@ -371,17 +382,16 @@ class Processor:
         
         if self.device is None:
             raise ValueError('No configured microphone array; use the offline command for recorded data')
+        self._beamforming_log_data = bool(self.log_data)
         self._generators()
         
         self.data_filename, self.results_filename = self._get_result_filenames('beamforming')
         
         self.writeH5.name = f"{self.data_filename}.h5"
         
-        if self.log_data:
-            self.sample_splitter.register_object(self.lastOut, self.writeH5)
-
-        else:
-            self.sample_splitter.register_object(self.lastOut)
+        objects = (self.lastOut, self.writeH5) if self._beamforming_log_data else (self.lastOut,)
+        self._beamforming_registration = (self.sample_splitter, objects)
+        self.sample_splitter.register_object(*objects)
         print(self.beamforming_grid.z)
         
         print("Registered objects from sample splitter.")
@@ -393,7 +403,7 @@ class Processor:
         print("Beamforming thread started.")
         
         # Start the thread for saving time samples
-        if self.log_data:
+        if self.save_time_samples_beamforming_thread is not None:
             self.save_time_samples_beamforming_thread.start()
             print("Time data saving thread started.")
     
@@ -408,13 +418,11 @@ class Processor:
         self.beamforming_thread.join()
         print("Beamforming thread stopped.")
         
-        if self.log_data:
+        if self.save_time_samples_beamforming_thread is not None:
             self.save_time_samples_beamforming_thread.join()
             print("Time data saving thread stopped.")
-            self.sample_splitter.remove_object(self.lastOut, self.writeH5)
-        
-        else:
-            self.sample_splitter.remove_object(self.lastOut)
+        splitter, objects = self._beamforming_registration
+        splitter.remove_object(*objects)
             
         print("Removed objects from sample splitter.")
         
@@ -433,8 +441,9 @@ class Processor:
         
         self.beamforming_thread = Thread(target=self._beamforming_generator)
         
-        if self.log_data:
-            self.save_time_samples_beamforming_thread = Thread(target=self._save_time_samples_beamforming)
+        self.save_time_samples_beamforming_thread = (
+            Thread(target=self._save_time_samples_beamforming) if self._beamforming_log_data else None
+        )
         
     def _get_maximum_coordinates(self, data):
         """ Get the maximum coordinates of the beamforming results
@@ -458,9 +467,12 @@ class Processor:
                 res = res.reshape(self.grid_dim)[:,::-1]
                 count += 1
                 with self.beamforming_result_lock:
+                    if self.beamforming_stop_event.is_set():
+                        break
                     self.beamforming_results['results'] = res 
                     self.beamforming_results['max_x'], self.beamforming_results['max_y'] = self._get_maximum_coordinates(res)
                     self.beamforming_results['max_s'] = np.max(res)
+                    self._beamforming_result_revision += 1
                 
             except StopIteration:
                 print("Generator has been stopped.")

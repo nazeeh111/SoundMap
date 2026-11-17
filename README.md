@@ -15,6 +15,8 @@ The application combines Acoular beamforming with a Bokeh dashboard and optional
 
 Data: Ennes Sarradj (2021), [Microphone array data for basic examples in Acoular](https://doi.org/10.5281/zenodo.5809069), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Recording, geometry and channel factors are unchanged; the maps are derived outputs. [Actual interactive report capture](docs/presentation/report-current.png).
 
+The published presentation bundle above records conventional `BeamformerBase` results produced with source commit `452eb6870a5601fa34d90bf81676015c185f5d82`. Its two bands were separate scalar calls. Its "current-main" label describes that producer snapshot; the original maps, reports, source hashes and attribution remain preserved. The optional methods and shared-input sweeps below are available in this source without changing the identity of those historical outputs. See [reproducing the preserved presentation](#reproduce-the-preserved-presentation) before re-rendering its figures.
+
 ## Try the offline coordinate check
 
 No microphone, camera or trained model is needed for this path. It generates ideal 16-channel signals and runs the real Acoular evaluation kernels against known source positions.
@@ -46,6 +48,23 @@ Use `soundmap-offline --help` to see the inputs and options. The source launcher
 and settings in JSON, a numerical NPZ map, and a self-contained interactive HTML plot. It needs no devices,
 TensorFlow or model weights. The [recorded-data quickstart](docs/OFFLINE.md) uses
 a small CC BY 4.0 wind-tunnel recording with matching geometry and calibration.
+
+The default recorded-data method is **conventional Acoular `BeamformerBase`**. Add `--method clean-sc` for Acoular 25.3 CLEAN-SC deconvolution, or use `--frequencies 4000 5000` in place of `--frequency 4000` to compute a shared-input sweep. For example, after preparing the inputs described in the quickstart:
+
+```sh
+soundmap-offline \
+  --input .verification/airfoil-data/example_data.h5 \
+  --geometry .verification/airfoil-data/array_56.xml \
+  --calibration .verification/airfoil-data/example_calib.xml \
+  --invalid-channels 1 7 --start 0 --stop 16000 \
+  --method clean-sc --frequencies 4000 5000 \
+  --z=-0.68 --speed 346.04 --bounds -0.6 0 -0.3 0.3 \
+  --increment 0.05 --block-size 128 --output clean-sc-sweep
+```
+
+A sweep captures the inputs once and shares its spectral computation across bands. It publishes `sweep.json` and complete per-band JSON, NPZ and offline HTML reports together into a new directory. Each report identifies its method, actual FFT bins, settings and supplied scan plane. Existing outputs are refused. The scalar command and output layout remain available. The [complete offline contract](docs/OFFLINE.md#frequency-sweeps-from-the-same-captured-inputs) explains admission limits and failure behavior.
+
+CLEAN-SC uses the existing Acoular implementation; its component peaks are not a source-count guarantee. Close sources, reflections or incorrect geometry can remain unresolved. This source does not establish broad method superiority, physical localization accuracy, absolute SPL or recovered depth. The live dashboard's classical path remains its separate time-domain beamformer; the offline method flag applies to recorded-data maps.
 
 ![Computed 4 kHz wind-tunnel source map; supplied z is -0.68 m, levels relative to peak](docs/recorded-airfoil-map.png)
 
@@ -89,14 +108,23 @@ Bokeh opens at `http://localhost:5006/bokeh_app` with `--no-flask`. For the opti
 Flask wrapper install `requirements-camera.txt` and omit `--no-flask`. Its camera
 feed is **disabled unless `--camera` is explicitly requested**; camera handles are
 released on stream termination. Stop the launcher with **Ctrl+C**. For microphone
-setup see [the setup guide](docs/REFERENCE.md). Live acquisition, camera registration
-and real neural inference remain separate unverified gates.
+setup see [the setup guide](docs/REFERENCE.md). The dashboard reports **Stopping** until the current acquisition and cleanup return; results may be partial. A blocked native operation can leave it stopping indefinitely, and a cleanup error leaves restart unavailable. Closing a browser session requests the same stop. Another local dashboard session waits for the current acquisition to release ownership, and a new measurement waits for newly produced results before updating plots. Direct Python processor stop methods remain synchronous.
+
+The save-time-data choice is fixed when a measurement starts. Stop waits for its allocated recording writer and removes the original splitter registrations before another measurement is admitted, including when configuration was changed programmatically. Live acquisition, camera registration and real neural inference remain separate unverified gates.
 
 ## Processing layout
 
 ![SoundMap processing architecture](overview.png)
 
 This remains a research/test application with the original implementation's limitations. A real microphone array, device configuration, optional camera, and any chosen model are needed for live use. No microphone, camera, or device-capture route was started during packaging.
+
+## Reproduce the preserved presentation
+
+The [recorded presentation bundle](docs/presentation/README.md) is a historical artifact pinned to producer commit `452eb6870a5601fa34d90bf81676015c185f5d82`. Its NPZ maps and JSON receipts can be inspected without recomputing the recording; the included report archive can be extracted, hash-checked and opened offline. These published maps remain conventional results from two separate single-band calls.
+
+`docs/presentation/render.py` checks the producing `evaluation/offline.py` and `scripts/offline_map.py` hashes before drawing from the stored arrays. Those implementation hashes changed when optional CLEAN-SC and shared sweeps were integrated, so running the preserved renderer directly against this source intentionally refuses the mismatch. Keep that check and its original provenance intact.
+
+To re-render the same stored figures, use a disposable checkout of the recorded producer commit and copy the preserved `docs/presentation/` bundle from this source into its `docs/` directory. Run `python docs/presentation/render.py` there with NumPy and Matplotlib available. This verifies the recorded source hashes and renders the stored arrays without downloading the recording, calling a beamformer or accessing devices. For a new numerical run with current code, use the offline commands above and retain its new receipts separately; do not replace the historical source pins.
 
 ## Verification
 
