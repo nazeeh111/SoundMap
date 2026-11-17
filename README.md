@@ -2,7 +2,18 @@
 
 **Microphone-array measurements into sound-source maps.**
 
-The application combines Acoular beamforming with a Bokeh dashboard and optional Flask camera overlay. Offline evaluation kernels use a shared x-mirrored coordinate frame, separate from the camera overlay frame.
+The application combines Acoular beamforming with a Bokeh dashboard and optional Flask camera overlay. Recorded-data maps use the unmirrored geometry XML frame. The older evaluation kernels use an explicitly x-mirrored frame; both remain separate from camera overlay coordinates.
+
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/presentation/recorded-bands-mobile.png">
+  <img src="docs/presentation/recorded-bands.png" alt="Actual wind-tunnel recording: 56 ordered microphones, 54 valid after excluding channels 1 and 7, map nominal 4 and 5 kHz third-octave bands on supplied z−0.68m. The strongest grid points are (-0.25,-0.1)m and(-0.25,0.05)m. Each map uses a separate peak-relative dB reference; no absolute SPL or independent accuracy is established.">
+</picture>
+
+**One recorded input, two band-specific maps.** The public wind-tunnel example uses its matching geometry and channel factors, with channels `1` and `7` excluded. The same `0.3125 s` sample slice yields different map maxima at nominal `4 kHz` and `5 kHz`. Both maps use the unmirrored XML frame and a **supplied** `z = −0.68 m` plane. Colors show `10 log10(power / each map's maximum)`, clipped to −20…0 dB for display. They do not compare absolute levels between bands or establish independently measured source positions.
+
+[Run these recorded-data maps](docs/presentation/README.md) · [Inputs, FFT bins and provenance](docs/presentation/provenance.json) · [Download and reopen the report exports](docs/presentation/report-exports.zip) · [Vector figure](docs/presentation/recorded-bands.svg)
+
+Data: Ennes Sarradj (2021), [Microphone array data for basic examples in Acoular](https://doi.org/10.5281/zenodo.5809069), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Recording, geometry and channel factors are unchanged; the maps are derived outputs. [Actual interactive report capture](docs/presentation/report-current.png).
 
 ## Try the offline coordinate check
 

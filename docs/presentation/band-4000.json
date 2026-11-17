@@ -1,0 +1,84 @@
+{
+  "implementation_sha256": "24539f2850540ff025b8b219db7a82ed2a5fe51ba74d77aa6e2ab6038c8c8b77",
+  "schema_version": 1,
+  "method": "Acoular BeamformerBase, diagonal removed, third-octave band",
+  "coordinate_frame": "Geometry XML x,y,z in metres; channel i is XML position i; no mirror",
+  "depth": "Supplied scan-plane z, not estimated depth",
+  "scan_depth_m": -0.68,
+  "frequency_hz": 4000.0,
+  "sample_rate_hz": 51200.0,
+  "samples": 16000,
+  "channels": 54,
+  "input_channels": 56,
+  "excluded_zero_based_channels": [
+    1,
+    7
+  ],
+  "sample_start": 0,
+  "sample_stop": 16000,
+  "speed_of_sound_m_s": 346.04,
+  "fft_block_size": 128,
+  "increment_m": 0.05,
+  "bounds_m": [
+    -0.6,
+    0.0,
+    -0.3,
+    0.3
+  ],
+  "estimated_spectral_working_bytes": 12130560,
+  "estimated_beamformer_result_bytes": 87880,
+  "estimated_working_bytes": 12218440,
+  "working_budget_bytes": 536870912,
+  "input_sha256": "6fe0e3c13ce45e98859509094debea0b5dacb96dc18df22be435b2ff066ec690",
+  "geometry_sha256": "a9ef0201c44fefedcc2e93e7f75f5728707c84c6fd1b92543c5ccfd6a380e083",
+  "calibration_sha256": "83a257f6e91840228c9c96fff5f575ea5b211b6b5673a4c312958326e4fc8847",
+  "input": "/private/tmp/soundmap-design-public-inputs/example_data.h5",
+  "geometry": "/private/tmp/soundmap-design-public-inputs/array_56.xml",
+  "calibration": "/private/tmp/soundmap-design-public-inputs/example_calib.xml",
+  "power_units": "squared input units after optional calibration factors; absolute SPL requires pressure calibration",
+  "compute_seconds": 0.028707749999739463,
+  "packages": {
+    "acoular": "25.3",
+    "numpy": "1.26.4",
+    "scipy": "1.14.0",
+    "h5py": "3.11.0",
+    "traits": "6.4.3",
+    "tables": "3.11.1"
+  },
+  "limits": [
+    "Peaks may include sidelobes/reflections, not a guaranteed source count.",
+    "Geometry, channel order, sound speed and supplied plane must match the recording.",
+    "No flow correction, camera registration, neural inference or physical accuracy validation."
+  ],
+  "input_provenance": "Hashes identify private input snapshots used for validation and computation; original paths are annotations and may have changed during or after copying.",
+  "peaks": [
+    {
+      "position_m": [
+        -0.25,
+        -0.1,
+        -0.68
+      ],
+      "power": 4.5742935924139035e-05,
+      "level_relative_to_map_peak_db": 0.0
+    },
+    {
+      "position_m": [
+        -0.3,
+        0.09999999999999998,
+        -0.68
+      ],
+      "power": 9.903704327334518e-06,
+      "level_relative_to_map_peak_db": -6.645263694239228
+    },
+    {
+      "position_m": [
+        -0.6,
+        0.0,
+        -0.68
+      ],
+      "power": 6.540824975938482e-06,
+      "level_relative_to_map_peak_db": -8.446915074123517
+    }
+  ],
+  "peak_separation_m": 0.2
+}

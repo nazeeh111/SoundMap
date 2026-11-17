@@ -2,3 +2,6 @@
 
 *.ipynb linguist-vendored
 *.ipynb linguist-generated
+
+# Preserve the original calibration bytes used by pinned scientific receipts.
+docs/presentation/example_calib.xml -text -eol

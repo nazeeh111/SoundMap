@@ -1,0 +1,435 @@
+{
+  "base_commit": "452eb6870a5601fa34d90bf81676015c185f5d82",
+  "base_tree": "5d340dcc71bf5ad9ea656fe7576fca72846e7c54",
+  "source_sha256": {
+    "evaluation/offline.py": "24539f2850540ff025b8b219db7a82ed2a5fe51ba74d77aa6e2ab6038c8c8b77",
+    "scripts/offline_map.py": "47046a32db5d52c2fd8e1fe8c6e2a153e583b9d378211fcc1d66b108e2d4f921"
+  },
+  "source_dataset": {
+    "creator": "Ennes Sarradj",
+    "year": 2021,
+    "title": "Microphone array data for basic examples in Acoular",
+    "doi": "10.5281/zenodo.5809069",
+    "url": "https://zenodo.org/records/5809069",
+    "license": "CC BY 4.0",
+    "input_sha256": "6fe0e3c13ce45e98859509094debea0b5dacb96dc18df22be435b2ff066ec690",
+    "raw_recording_external": true,
+    "recording_altered": false,
+    "stored_shape": [
+      25600,
+      56
+    ],
+    "sample_rate_hz": 51200,
+    "analyzed_samples": [
+      0,
+      16000
+    ],
+    "analyzed_duration_s": 0.3125
+  },
+  "microphones_m": [
+    [
+      -0.145527,
+      0.6335,
+      0.0
+    ],
+    [
+      -0.066774,
+      0.236764,
+      0.0
+    ],
+    [
+      -0.376879,
+      0.529587,
+      0.0
+    ],
+    [
+      -0.152297,
+      0.193188,
+      0.0
+    ],
+    [
+      -0.550855,
+      0.345049,
+      0.0
+    ],
+    [
+      -0.214634,
+      0.120201,
+      0.0
+    ],
+    [
+      -0.640968,
+      0.10798,
+      0.0
+    ],
+    [
+      -0.244295,
+      0.028914,
+      0.0
+    ],
+    [
+      -0.6335,
+      -0.145527,
+      0.0
+    ],
+    [
+      -0.236764,
+      -0.066774,
+      0.0
+    ],
+    [
+      -0.529587,
+      -0.376879,
+      0.0
+    ],
+    [
+      -0.193188,
+      -0.152297,
+      0.0
+    ],
+    [
+      -0.345049,
+      -0.550855,
+      0.0
+    ],
+    [
+      -0.120201,
+      -0.214634,
+      0.0
+    ],
+    [
+      -0.10798,
+      -0.640968,
+      0.0
+    ],
+    [
+      -0.028914,
+      -0.244295,
+      0.0
+    ],
+    [
+      0.145527,
+      -0.6335,
+      0.0
+    ],
+    [
+      0.066774,
+      -0.236764,
+      0.0
+    ],
+    [
+      0.376879,
+      -0.529587,
+      0.0
+    ],
+    [
+      0.152297,
+      -0.193188,
+      0.0
+    ],
+    [
+      0.550855,
+      -0.345049,
+      0.0
+    ],
+    [
+      0.214634,
+      -0.120201,
+      0.0
+    ],
+    [
+      0.640968,
+      -0.10798,
+      0.0
+    ],
+    [
+      0.244295,
+      -0.028914,
+      0.0
+    ],
+    [
+      0.6335,
+      0.145527,
+      0.0
+    ],
+    [
+      0.236764,
+      0.066774,
+      0.0
+    ],
+    [
+      0.529587,
+      0.376879,
+      0.0
+    ],
+    [
+      0.193188,
+      0.152297,
+      0.0
+    ],
+    [
+      0.345049,
+      0.550855,
+      0.0
+    ],
+    [
+      0.120201,
+      0.214634,
+      0.0
+    ],
+    [
+      0.10798,
+      0.640968,
+      0.0
+    ],
+    [
+      0.028914,
+      0.244295,
+      0.0
+    ],
+    [
+      -0.029598,
+      0.463341,
+      0.0
+    ],
+    [
+      -0.02879,
+      0.088281,
+      0.0
+    ],
+    [
+      -0.348561,
+      0.306703,
+      0.0
+    ],
+    [
+      -0.082782,
+      0.042067,
+      0.0
+    ],
+    [
+      -0.463341,
+      -0.029598,
+      0.0
+    ],
+    [
+      -0.088281,
+      -0.02879,
+      0.0
+    ],
+    [
+      -0.306703,
+      -0.348561,
+      0.0
+    ],
+    [
+      -0.042067,
+      -0.082782,
+      0.0
+    ],
+    [
+      0.029598,
+      -0.463341,
+      0.0
+    ],
+    [
+      0.02879,
+      -0.088281,
+      0.0
+    ],
+    [
+      0.348561,
+      -0.306703,
+      0.0
+    ],
+    [
+      0.082782,
+      -0.042067,
+      0.0
+    ],
+    [
+      0.463341,
+      0.029598,
+      0.0
+    ],
+    [
+      0.088281,
+      0.02879,
+      0.0
+    ],
+    [
+      0.306703,
+      0.348561,
+      0.0
+    ],
+    [
+      0.042067,
+      0.082782,
+      0.0
+    ],
+    [
+      -0.138631,
+      0.241627,
+      0.0
+    ],
+    [
+      -0.268883,
+      0.072829,
+      0.0
+    ],
+    [
+      -0.241627,
+      -0.138631,
+      0.0
+    ],
+    [
+      -0.072829,
+      -0.268883,
+      0.0
+    ],
+    [
+      0.138631,
+      -0.241627,
+      0.0
+    ],
+    [
+      0.268883,
+      -0.072829,
+      0.0
+    ],
+    [
+      0.241627,
+      0.138631,
+      0.0
+    ],
+    [
+      0.072829,
+      0.268883,
+      0.0
+    ]
+  ],
+  "excluded_zero_based_channels": [
+    1,
+    7
+  ],
+  "valid_channels": 54,
+  "array_plane_z_m": 0.0,
+  "supplied_scan_plane_z_m": -0.68,
+  "scan_depth_estimated": false,
+  "coordinate_frame": "Unmirrored geometry XML x,y,z in metres; no camera overlay",
+  "fft_spacing_hz": 400.0,
+  "frequency_integration": "Acoular25.3 BeamformerBase.synthetic num3; searchsorted lower inclusive, upper exclusive; sum selected FFT bins",
+  "bands": [
+    {
+      "nominal_hz": 4000,
+      "nominal_band_edges_hz": [
+        3563.594872561357,
+        4489.8481932374925
+      ],
+      "actual_bin_indices": [
+        9,
+        10,
+        11
+      ],
+      "actual_bin_centres_hz": [
+        3600.0,
+        4000.0,
+        4400.0
+      ],
+      "npz": "band-4000.npz",
+      "receipt": "band-4000.json",
+      "grid_cells": 169,
+      "strongest_grid_point_m": [
+        -0.25,
+        -0.1,
+        -0.68
+      ]
+    },
+    {
+      "nominal_hz": 5000,
+      "nominal_band_edges_hz": [
+        4454.493590701696,
+        5612.310241546865
+      ],
+      "actual_bin_indices": [
+        12,
+        13,
+        14
+      ],
+      "actual_bin_centres_hz": [
+        4800.0,
+        5200.0,
+        5600.0
+      ],
+      "npz": "band-5000.npz",
+      "receipt": "band-5000.json",
+      "grid_cells": 169,
+      "strongest_grid_point_m": [
+        -0.25,
+        0.04999999999999999,
+        -0.68
+      ]
+    }
+  ],
+  "normalization": "10 log10(max(power / map.max(), 1e-12)); independently referenced to each map peak; display clipped to [-20,0] dB",
+  "absolute_spl_calibrated": false,
+  "runtime": {
+    "python": "3.12.13 (main, Jun  2 2026, 22:42:28) [Clang 22.1.3 ]",
+    "packages": {
+      "ndindex": "1.10.1",
+      "h5py": "3.11.0",
+      "scikit-learn": "1.9.1",
+      "cloudpickle": "3.1.2",
+      "packaging": "26.3",
+      "joblib": "1.6.0",
+      "Pygments": "2.21.0",
+      "acoular": "25.3",
+      "rich": "15.0.0",
+      "contourpy": "1.3.3",
+      "pydantic_core": "2.46.5",
+      "traits": "6.4.3",
+      "h2": "4.4.1",
+      "numpy": "1.26.4",
+      "httpcore": "1.0.9",
+      "blosc2": "4.13.1",
+      "pillow": "13.0.0",
+      "tables": "3.11.1",
+      "bokeh": "3.5.2",
+      "numexpr": "2.14.2",
+      "h11": "0.16.0",
+      "pydantic": "2.13.5",
+      "llvmlite": "0.49.0",
+      "mdurl": "0.1.2",
+      "scipy": "1.14.0",
+      "PyYAML": "6.0.3",
+      "numba": "0.67.0",
+      "hpack": "4.2.0",
+      "certifi": "2026.7.22",
+      "Jinja2": "3.1.6",
+      "annotated-types": "0.8.0",
+      "markdown-it-py": "4.2.0",
+      "tzdata": "2026.6",
+      "threadpoolctl": "3.7.0",
+      "typing-inspection": "0.4.4",
+      "msgpack": "1.2.2",
+      "pandas": "3.0.6",
+      "tornado": "6.6.1",
+      "py-cpuinfo": "9.0.0",
+      "httpx": "0.28.1",
+      "typing_extensions": "4.16.0",
+      "MarkupSafe": "3.0.4",
+      "xyzservices": "2026.9.1",
+      "python-dateutil": "4.0.0",
+      "anyio": "4.15.1",
+      "hyperframe": "6.1.0",
+      "narwhals": "2.26.0",
+      "idna": "3.20"
+    }
+  },
+  "limits": [
+    "Single recorded-data execution is not localization-accuracy validation.",
+    "Supplied plane, geometry, speed and channel ordering must match the setup.",
+    "No flow correction, acquisition, camera registration or neural inference.",
+    "Map maxima can include reflections or sidelobes; no source-count claim."
+  ]
+}
