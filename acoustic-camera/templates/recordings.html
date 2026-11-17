@@ -1,0 +1,117 @@
+<style>
+  /* Bokeh sets inline-block on the Div content wrapper. Fill the available width here. */
+  .bk-clearfix:has(> .recordings) { display: block !important; }
+  .recordings {
+    --ink: #182630;
+    --muted: #485a66;
+    --line: #c9d3d8;
+    --signal: #14566e;
+    box-sizing: border-box;
+    color: var(--ink);
+    background: #f4f6f7;
+    font: 16px/1.55 system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 100vh;
+  }
+  .recordings * { box-sizing: border-box; }
+  .recordings a { color: var(--signal); text-underline-offset: .2em; }
+  .recordings a:focus-visible, .recordings summary:focus-visible {
+    outline: 3px solid var(--signal);
+    outline-offset: 4px;
+  }
+  .recordings header, .recordings article {
+    margin: auto;
+    width: min(100%, 1160px);
+    padding-inline: clamp(16px, 4vw, 48px);
+  }
+  .recordings header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    min-height: 72px;
+    border-bottom: 1px solid var(--line);
+  }
+  .recordings header strong { font-size: 21px; }
+  .recordings header span, .recordings figcaption { color: var(--muted); font-size: 14px; }
+  .recordings article { padding-block: clamp(24px, 4vw, 48px); }
+  .recordings h1 { font-size: clamp(30px, 5vw, 56px); line-height: 1.04; letter-spacing: -.035em; margin: 0; }
+  .recordings p { max-width: 72ch; margin: 0 0 12px; }
+  .recordings .rec-intro { margin-block: 12px 16px; }
+  .recordings details { border-top: 1px solid var(--line); }
+  .recordings summary { color: var(--signal); cursor: pointer; font-weight: 600; padding-block: 10px; min-height: 44px; }
+  .recordings .rec-controls { border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .recordings figure { margin: 0 0 32px; }
+  .recordings picture, .recordings img { display: block; width: 100%; }
+  .recordings img { height: auto; }
+  .recordings figcaption { border-top: 1px solid var(--line); padding-block: 12px; }
+  .recordings .rec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-block: 16px 32px;
+  }
+  .recordings .rec-band { background: white; border: 1px solid var(--line); border-top: 3px solid var(--signal); padding: 16px; }
+  .recordings .rec-band h2 { margin: 0; font-size: 21px; }
+  .recordings .rec-band dl { margin: 12px 0 0; }
+  .recordings .rec-band dt { margin-top: 8px; color: var(--muted); font-size: 14px; }
+  .recordings .rec-band dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .recordings .rec-band a { display: inline-flex; align-items: center; min-height: 44px; margin-right: 12px; }
+  .recordings code { overflow-wrap: anywhere; }
+  @media (max-width: 620px) { .recordings .rec-grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<main class="recordings">
+  <header>
+    <strong>SoundMap</strong>
+    <span>{{ message }}</span>
+  </header>
+  <article>
+    <h1>Recorded measurements</h1>
+    <p class="rec-intro">Compare the 4 and 5 kHz third-octave maps from the same 0.3125 s slice of wind-tunnel audio. Both use 54 of the 56 recorded channels.</p>
+    <div class="rec-controls">
+      <details>
+        <summary>Compare band values</summary>
+        <p>Each maximum is one point on a 13 × 13 grid with 0.05 m spacing. The scan plane is supplied at z = −0.68 m. The marker gives the strongest grid point. Localization accuracy was not measured.</p>
+        <div class="rec-grid">
+          {% for band in bands %}
+          <section class="rec-band" aria-labelledby="band-{{ band.frequency }}">
+            <h2 id="band-{{ band.frequency }}">{{ band.frequency // 1000 }} kHz third octave</h2>
+            <dl>
+              <dt>FFT bin centers (Hz)</dt><dd>{{ band.bins }}</dd>
+              <dt>Grid maximum (x, y) in metres</dt><dd>(−0.25, {{ band.peak_y }})</dd>
+            </dl>
+            {% for name, url in band.files %}
+            {% if url %}<a href="{{ url }}" download="{{ name }}">{{ name }}</a>
+            {% else %}<p>{{ name }} is unavailable in this checkout.</p>{% endif %}
+            {% endfor %}
+          </section>
+          {% endfor %}
+        </div>
+      </details>
+      <details>
+        <summary>Open full reports offline</summary>
+        {% if has_reports %}
+        <p>In your checkout, extract <code>docs/presentation/report-exports.zip</code> and open either band’s <code>map.html</code>. Each report has local pan, zoom and SVG export.</p>
+        {% else %}
+        <p>The full report archive is missing from this checkout. <a href="https://github.com/nazeeh111/SoundMap/blob/7235f789b4612abcd4639391ec9e2f362cbf94d8/docs/presentation/report-exports.zip">Get the archived reports from GitHub</a>.</p>
+        {% endif %}
+        <p>For your own recording, run <code>python soundmap.py offline --help</code>.</p>
+      </details>
+    </div>
+    <figure>
+      {% if wide_map or narrow_map %}
+      <picture>
+        {% if narrow_map and wide_map %}<source media="(max-width: 620px)" srcset="{{ narrow_map }}">{% endif %}
+        <img src="{{ wide_map or narrow_map }}" alt="Microphone positions and two relative beamforming maps. Peak x stays at −0.25 m. Peak y differs between the bands: −0.10 m at 4 kHz and +0.05 m at 5 kHz. Open Compare band values for the measurement details.">
+      </picture>
+      {% else %}
+      <p>The archived images are unavailable in this checkout. Open Compare band values to inspect the measurements.</p>
+      {% endif %}
+      <figcaption>
+        Color shows power in dB relative to each band’s own grid maximum (−20 to 0 dB displayed). Compare peak locations. The maps have no common absolute level reference.
+      </figcaption>
+    </figure>
+    <p>Recording by Ennes Sarradj (2021), <a href="https://doi.org/10.5281/zenodo.5809069">Microphone array data for basic examples in Acoular</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The maps use conventional Acoular beamforming, with per-band peak normalization.</p>
+  </article>
+</main>
