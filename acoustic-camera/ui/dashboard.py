@@ -6,14 +6,17 @@ from bokeh.models import Div, CheckboxGroup, RadioButtonGroup, TextInput, Button
 from bokeh.plotting import curdoc, figure
 from .plotting import AcousticCameraPlot
 from .measurement import MeasurementOwner
+from .recordings import recorded_view
 
 
 class Dashboard:
-    def __init__(self, config, processor, model_on=False, alphas=None, video_stream=None, stream_on=False, document=None):
+    def __init__(self, config, processor, model_on=False, alphas=None, video_stream=None, stream_on=False, document=None, *, no_device=False):
         
         self.config = config
         self.document = document if document is not None else curdoc()
 
+        self.processor = processor
+        self.model_on = model_on
         # Boolean for stream status
         self.stream_on = stream_on
         
@@ -26,14 +29,8 @@ class Dashboard:
         else:
             self.frame_width, self.frame_height = self.config.get('layout.video.width'), self.config.get('layout.video.height')
 
-        # Boolean for model status
-        self.model_on = model_on
-        
         # Start time for the measurement
         self.start_time = 0
-        
-        # Data Processor object, contains model and beamforming
-        self.processor = processor
         
         # Setting model and beamforming threads to None
         self.measurement = MeasurementOwner(processor)
@@ -42,6 +39,15 @@ class Dashboard:
         self._displayed_beamforming_revision = 0
         self.document.on_session_destroyed(lambda _context: self.measurement.stop())
         
+        if processor.dev is None:
+            message = ('Device-free session · Acquisition disabled' if no_device else
+                       'No compatible UMA-16 array · Acquisition disabled')
+            self.dashboard_layout = column(
+                Div(text=recorded_view(message), sizing_mode='stretch_width'),
+                sizing_mode='stretch_width',
+            )
+            return
+
         # Method for processing the data, 0 is Deep Learning, 1 is Beamforming
         self.method = 1 # Default is Beamfroming
         
@@ -65,13 +71,6 @@ class Dashboard:
         self.real_y = self.config.get('app_default_settings.y')
         self.real_z = self.config.get('app_default_settings.z')
         
-        if processor.dev is None:
-            self.dashboard_layout = column(
-                Div(text="<h2>SoundMap</h2><p>No compatible UMA-16 microphone array configured. "
-                         "Acquisition is disabled. Use soundmap.py offline for recorded data.</p>"),
-                self.acoustic_camera_plot.fig)
-            return
-
         if processor.dev is not None:
             inside_width = self.config.get('layout.sidebar.content_width')
     

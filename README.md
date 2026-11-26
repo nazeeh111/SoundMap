@@ -106,8 +106,13 @@ largest integer prefix is selected. No weights are bundled, and neural inference
 remains unvalidated. An unavailable UMA16 disables acquisition instead of silently
 selecting the computer's default microphone.
 
-Bokeh opens at `http://localhost:5006/bokeh_app` with `--no-flask`. For the optional
-Flask wrapper install `requirements-camera.txt` and omit `--no-flask`. Its camera
+Bokeh opens at `http://localhost:5006/bokeh_app` with `--no-flask`. In a device-free
+session or when no compatible array is available, SoundMap opens the archived
+wind-tunnel comparison. It includes both maps, FFT bin and grid-peak values,
+exact JSON and NPZ downloads, and instructions for opening the bundled reports
+offline.
+
+For the optional Flask wrapper install `requirements-camera.txt` and omit `--no-flask`. Its camera
 feed is **disabled unless `--camera` is explicitly requested**; camera handles are
 released on stream termination. Stop the launcher with **Ctrl+C**. For microphone
 setup see [the setup guide](docs/REFERENCE.md). The dashboard reports **Stopping** until the current acquisition and cleanup return; results may be partial. A blocked native operation can leave it stopping indefinitely, and a cleanup error leaves restart unavailable. Closing a browser session requests the same stop. Another local dashboard session waits for the current acquisition to release ownership, and a new measurement waits for newly produced results before updating plots. Direct Python processor stop methods remain synchronous.

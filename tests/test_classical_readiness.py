@@ -4,6 +4,8 @@ from pathlib import Path
 import os
 import sys
 import unittest
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -37,7 +39,20 @@ class ClassicalReadiness(unittest.TestCase):
             classical = app.Dashboard(dashboard.config, dashboard.processor, False, (1.0,1.0))
             self.assertFalse(classical.model_on)
             self.assertTrue(classical.get_layout().children)
-            self.assertIn('No compatible', doc.to_json()['roots'][0]['attributes']['children'][0]['attributes']['text'])
+            recorded = doc.to_json()['roots'][0]['attributes']['children'][0]['attributes']['text']
+            self.assertIn('Device-free session', recorded)
+            self.assertIn('In your checkout, extract', recorded)
+            self.assertIn('band-4000.npz', recorded)
+            self.assertIn('band-5000.json', recorded)
+            self.assertFalse(hasattr(dashboard, 'acoustic_camera_plot'))
+            from ui import recordings
+            with TemporaryDirectory() as empty, patch.object(recordings, 'ASSETS', Path(empty)):
+                unavailable = recordings.recorded_view('Acquisition disabled')
+                self.assertIn('The archived images are unavailable', unavailable)
+                self.assertIn('band-4000.npz is unavailable', unavailable)
+                self.assertIn('full report archive is missing', unavailable)
+                self.assertNotIn('In your checkout, extract', unavailable)
+                self.assertNotIn('data:image/png', unavailable)
         finally:
             sys.argv = old_argv
             os.chdir(old_cwd)
