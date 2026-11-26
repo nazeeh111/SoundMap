@@ -11,7 +11,7 @@ The application combines Acoular beamforming with a Bokeh dashboard and optional
 
 **One recorded input, two band-specific maps.** The public wind-tunnel example uses its matching geometry and channel factors, with channels `1` and `7` excluded. The same `0.3125 s` sample slice yields different map maxima at nominal `4 kHz` and `5 kHz`. Both maps use the unmirrored XML frame and a **supplied** `z = −0.68 m` plane. Colors show `10 log10(power / each map's maximum)`, clipped to −20…0 dB for display. They do not compare absolute levels between bands or establish independently measured source positions.
 
-[Run these recorded-data maps](docs/presentation/README.md) · [Inputs, FFT bins and provenance](docs/presentation/provenance.json) · [Download and reopen the report exports](docs/presentation/report-exports.zip) · [Vector figure](docs/presentation/recorded-bands.svg)
+[Run these recorded-data maps](docs/presentation/README.md) · [Inputs, FFT bins and provenance](docs/presentation/provenance.json) · [Download and reopen the report exports](https://raw.githubusercontent.com/nazeeh111/SoundMap/refs/heads/main/docs/presentation/report-exports.zip) · [Vector figure](docs/presentation/recorded-bands.svg)
 
 Data: Ennes Sarradj (2021), [Microphone array data for basic examples in Acoular](https://doi.org/10.5281/zenodo.5809069), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Recording, geometry and channel factors are unchanged; the maps are derived outputs. [Actual interactive report capture](docs/presentation/report-current.png).
 
